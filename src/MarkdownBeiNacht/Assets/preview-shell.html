@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://appassets data: file:; img-src 'self' https://appassets data: file: http: https:; style-src 'self' 'unsafe-inline' https://appassets; script-src 'self' 'unsafe-inline' https://appassets; connect-src 'none'; font-src 'self' https://appassets;">
+  <title>Markdown bei Nacht</title>
+  <link rel="stylesheet" href="preview.css">
+  <script src="highlight.min.js"></script>
+</head>
+<body>
+  <main class="surface">
+    <article id="content" class="markdown-body"></article>
+  </main>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const content = document.getElementById('content');
+
+      function applyTheme(theme) {
+        Object.entries(theme || {}).forEach(([key, value]) => {
+          root.style.setProperty(key, value);
+        });
+      }
+
+      function highlightCode() {
+        if (!window.hljs || typeof window.hljs.highlightElement !== 'function') {
+          return;
+        }
+
+        document.querySelectorAll('pre code').forEach((block) => {
+          try {
+            window.hljs.highlightElement(block);
+          } catch (_) {
+          }
+        });
+      }
+
+      window.markdownViewer = {
+        applyContent(payload) {
+          applyTheme(payload.theme || {});
+          content.innerHTML = payload.html || '';
+          document.title = payload.title || 'Markdown bei Nacht';
+          highlightCode();
+        },
+        captureScrollRatio() {
+          const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+          return maxScroll <= 1 ? 0 : window.scrollY / maxScroll;
+        },
+        restoreScrollRatio(ratio) {
+          const bounded = Math.max(0, Math.min(1, Number(ratio) || 0));
+          const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+          window.scrollTo({ top: bounded * maxScroll, behavior: 'auto' });
+        },
+        scrollToAnchor(anchor) {
+          if (!anchor) {
+            return;
+          }
+
+          const safeAnchor = decodeURIComponent(anchor);
+          const target = document.getElementById(safeAnchor) || document.querySelector(`[name="${CSS.escape(safeAnchor)}"]`);
+          if (target) {
+            target.scrollIntoView({ block: 'start', behavior: 'auto' });
+          }
+        }
+      };
+
+      document.addEventListener('click', (event) => {
+        const link = event.target.closest('a[href]');
+        if (!link) {
+          return;
+        }
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#')) {
+          return;
+        }
+
+        event.preventDefault();
+        if (window.chrome?.webview?.postMessage) {
+          window.chrome.webview.postMessage(JSON.stringify({ type: 'linkClick', href }));
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+
