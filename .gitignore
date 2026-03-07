@@ -416,3 +416,15 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+# Workspace-local development environment
+.dotnet8/
+.dotnet-cli/
+.localprofile/
+.nuget/
+dotnet-install.ps1
+
+# Local diagnostics and scratch files
+ap-test.txt
+random-sentence.txt
+build-diagnostic.log
+build-sln-diagnostic.log
