@@ -2,15 +2,16 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown files without opening a full editor or copying content into a browser.
 
-Quick start: if you just want to click the app, run `artifacts/publish/win-x64/MarkdownBeiNacht.exe`.
+Quick start: if you just want to click the app directly, run `artifacts/publish/win-x64/MarkdownBeiNacht.exe`.
+If you want the one-click installer, use `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 
 It is a native `WPF` application built on `.NET 8` with an embedded `WebView2` renderer. The current build focuses on one job: open a Markdown file, render it cleanly, and refresh the preview when the file changes on disk.
 
 ## Status
 
-Current version: `v0.1.1`
+Current version: `v0.2.0`
 
-Release state: unreleased pre-1.0 work in active development.
+Release state: stable pre-1.0 milestone with working installer packaging and Explorer `Open with` integration.
 
 This repository already contains a usable first pass, but the project is still settling packaging polish and public-repo hygiene.
 
@@ -24,7 +25,7 @@ This repository already contains a usable first pass, but the project is still s
 - Open `http/https` links in the default browser.
 - Open non-Markdown local links with the Windows shell.
 - Resolve relative local assets against the current Markdown file.
-- Block remote images intentionally in v0.1.1.
+- Block remote images intentionally in v0.2.0.
 - Persist a configurable base dark color in local app settings.
 
 ## Architecture
@@ -120,9 +121,15 @@ Current packaging goals:
 - no forced takeover of the default `.md` association
 - WebView2 bootstrap when the runtime is missing
 
-The installer script is ready, but compiling the final installer requires `ISCC.exe` from Inno Setup to be installed on the build machine.
+Build the installer from the repository root with:
 
-## Known Limitations In v0.1.1
+```powershell
+PowerShell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1 -Configuration Release -Runtime win-x64
+```
+
+The resulting setup executable is written to `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
+
+## Known Limitations In v0.2.0
 
 - Remote images are blocked by design.
 - The installer `.exe` is not built unless Inno Setup is installed locally.

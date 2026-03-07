@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-03-07
+
+### Added
+
+- Installer packaging flow for the published Windows app, including per-user installation and `Open With` registration for Markdown file types.
+
+### Changed
+
+- Updated app and installer version metadata to `0.2.0`.
+- Expanded installer file association support to `.md`, `.markdown`, and `.mdown`.
+- Corrected the installer Start Menu shortcut target for Inno Setup packaging.
+- Verified clean install, Explorer `Open With` launch, and uninstall cleanup for the packaged app.
+
 ## [0.1.1] - Unreleased
 
 ### Changed
