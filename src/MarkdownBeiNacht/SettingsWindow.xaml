@@ -2,15 +2,101 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Theme Settings"
-        Width="430"
-        Height="290"
+        Width="520"
+        Height="360"
+        MinWidth="520"
+        MinHeight="360"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#091120"
         Foreground="#EAF2FF"
         ShowInTaskbar="False">
-    <Grid Margin="24">
+    <Window.Resources>
+        <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#091120" />
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#0D1728" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#294362" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#EAF2FF" />
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#9BB4CB" />
+        <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#102033" />
+        <SolidColorBrush x:Key="ButtonBorderBrush" Color="#335272" />
+        <SolidColorBrush x:Key="ButtonHoverBrush" Color="#18314A" />
+        <SolidColorBrush x:Key="PrimaryButtonBrush" Color="#1F6AA5" />
+        <SolidColorBrush x:Key="PrimaryButtonHoverBrush" Color="#2A7ABB" />
+
+        <Style x:Key="DialogButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{StaticResource ButtonBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="MinWidth" Value="96" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource ButtonHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.9" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryDialogButtonStyle" TargetType="Button" BasedOn="{StaticResource DialogButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource PrimaryButtonBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryButtonBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource PrimaryButtonHoverBrush}" />
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="{StaticResource PrimaryButtonHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="30">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -20,65 +106,69 @@
         <TextBlock Text="Midnight Theme"
                    FontSize="24"
                    FontWeight="SemiBold"
+                   Foreground="{StaticResource PrimaryTextBrush}"
                    Margin="0,0,0,10" />
 
         <TextBlock Grid.Row="1"
                    Text="Choose the base dark navy tone used throughout the preview."
                    TextWrapping="Wrap"
+                   FontSize="15"
                    Foreground="#C1D2E2"
-                   Margin="0,0,0,18" />
+                   Margin="0,0,0,22" />
 
         <Border Grid.Row="2"
-                CornerRadius="18"
-                Padding="18"
-                BorderBrush="#294362"
+                CornerRadius="20"
+                Padding="20"
+                BorderBrush="{StaticResource CardBorderBrush}"
                 BorderThickness="1"
-                Background="#0D1728">
+                Background="{StaticResource CardBackgroundBrush}"
+                Margin="0,0,0,24">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="72" />
+                    <ColumnDefinition Width="84" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Border x:Name="ColorSwatch"
-                        Width="56"
-                        Height="56"
-                        CornerRadius="14"
+                        Width="64"
+                        Height="64"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        CornerRadius="16"
                         BorderBrush="#5D7FA3"
                         BorderThickness="1" />
                 <StackPanel Grid.Column="1"
                             VerticalAlignment="Center">
                     <TextBlock Text="Base Color"
                                FontSize="13"
-                               Foreground="#9BB4CB" />
+                               Foreground="{StaticResource SecondaryTextBrush}" />
                     <TextBlock x:Name="ColorValueText"
-                               FontSize="22"
+                               FontSize="26"
                                FontWeight="SemiBold"
-                               Margin="0,2,0,0" />
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Margin="0,4,0,0" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <StackPanel Grid.Row="3"
+        <StackPanel Grid.Row="4"
                     Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,22,0,0">
+                    HorizontalAlignment="Right">
             <Button Content="Default"
-                    Width="86"
+                    Style="{StaticResource DialogButtonStyle}"
                     Margin="0,0,10,0"
                     Click="ResetButton_OnClick" />
             <Button Content="Choose Color..."
-                    Width="118"
+                    Style="{StaticResource DialogButtonStyle}"
                     Margin="0,0,10,0"
                     Click="ChooseColorButton_OnClick" />
             <Button Content="Cancel"
-                    Width="86"
+                    Style="{StaticResource DialogButtonStyle}"
                     Margin="0,0,10,0"
                     IsCancel="True" />
             <Button Content="Save"
-                    Width="86"
+                    Style="{StaticResource PrimaryDialogButtonStyle}"
                     IsDefault="True"
                     Click="SaveButton_OnClick" />
         </StackPanel>
     </Grid>
 </Window>
-

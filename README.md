@@ -2,11 +2,13 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown files without opening a full editor or copying content into a browser.
 
+Quick start: if you just want to click the app, run `artifacts/publish/win-x64/MarkdownBeiNacht.exe`.
+
 It is a native `WPF` application built on `.NET 8` with an embedded `WebView2` renderer. The current build focuses on one job: open a Markdown file, render it cleanly, and refresh the preview when the file changes on disk.
 
 ## Status
 
-Current version: `v0.1.0`
+Current version: `v0.1.1`
 
 Release state: unreleased pre-1.0 work in active development.
 
@@ -22,7 +24,7 @@ This repository already contains a usable first pass, but the project is still s
 - Open `http/https` links in the default browser.
 - Open non-Markdown local links with the Windows shell.
 - Resolve relative local assets against the current Markdown file.
-- Block remote images intentionally in v0.1.0.
+- Block remote images intentionally in v0.1.1.
 - Persist a configurable base dark color in local app settings.
 
 ## Architecture
@@ -120,7 +122,7 @@ Current packaging goals:
 
 The installer script is ready, but compiling the final installer requires `ISCC.exe` from Inno Setup to be installed on the build machine.
 
-## Known Limitations In v0.1.0
+## Known Limitations In v0.1.1
 
 - Remote images are blocked by design.
 - The installer `.exe` is not built unless Inno Setup is installed locally.
@@ -136,7 +138,4 @@ The changelog follows a Keep a Changelog style format and uses semantic versioni
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-
-
 

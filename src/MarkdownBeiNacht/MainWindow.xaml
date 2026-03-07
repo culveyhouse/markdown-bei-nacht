@@ -24,18 +24,144 @@
               Background="#091120"
               Foreground="#E5F1FF"
               Padding="6,4">
-            <MenuItem Header="_File">
+            <Menu.Resources>
+                <SolidColorBrush x:Key="MenuBarForegroundBrush" Color="#E5F1FF" />
+                <SolidColorBrush x:Key="MenuBarHighlightBrush" Color="#14263A" />
+                <SolidColorBrush x:Key="MenuPopupBackgroundBrush" Color="#0E1829" />
+                <SolidColorBrush x:Key="MenuPopupForegroundBrush" Color="#EAF3FF" />
+                <SolidColorBrush x:Key="MenuPopupBorderBrush" Color="#253A56" />
+                <SolidColorBrush x:Key="MenuPopupHighlightBrush" Color="#18314A" />
+                <SolidColorBrush x:Key="MenuPopupDisabledBrush" Color="#6F8197" />
+
+                <Style x:Key="TopLevelMenuItemStyle" TargetType="MenuItem">
+                    <Setter Property="Foreground" Value="{StaticResource MenuBarForegroundBrush}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="10,4" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="MenuItem">
+                                <Grid>
+                                    <Border x:Name="RootBorder"
+                                            Background="{TemplateBinding Background}"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter ContentSource="Header"
+                                                          RecognizesAccessKey="True" />
+                                    </Border>
+                                    <Popup x:Name="PART_Popup"
+                                           AllowsTransparency="True"
+                                           Focusable="False"
+                                           IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                           Placement="Bottom"
+                                           PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                           PopupAnimation="Fade">
+                                        <Border Background="{StaticResource MenuPopupBackgroundBrush}"
+                                                BorderBrush="{StaticResource MenuPopupBorderBrush}"
+                                                BorderThickness="1"
+                                                Padding="4"
+                                                SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True"
+                                                        KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource MenuBarHighlightBrush}" />
+                                        <Setter Property="Foreground" Value="#FFFFFF" />
+                                    </Trigger>
+                                    <Trigger Property="IsSubmenuOpen" Value="True">
+                                        <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource MenuBarHighlightBrush}" />
+                                        <Setter Property="Foreground" Value="#FFFFFF" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style x:Key="SubmenuMenuItemStyle" TargetType="MenuItem">
+                    <Setter Property="Foreground" Value="{StaticResource MenuPopupForegroundBrush}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="12,8" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="MenuItem">
+                                <Border Background="{StaticResource MenuPopupBackgroundBrush}"
+                                        BorderBrush="{StaticResource MenuPopupBorderBrush}"
+                                        BorderThickness="0">
+                                    <Grid MinWidth="180">
+                                        <Border x:Name="ItemBackground"
+                                                Background="Transparent"
+                                                Padding="{TemplateBinding Padding}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0"
+                                                                  ContentSource="Header"
+                                                                  RecognizesAccessKey="True"
+                                                                  VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{TemplateBinding InputGestureText}"
+                                                           Margin="24,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{TemplateBinding Foreground}" />
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="ItemBackground" Property="Background" Value="{StaticResource MenuPopupHighlightBrush}" />
+                                        <Setter Property="Foreground" Value="#FFFFFF" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="{StaticResource MenuPopupDisabledBrush}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style TargetType="ContextMenu">
+                    <Setter Property="Background" Value="{StaticResource MenuPopupBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource MenuPopupForegroundBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource MenuPopupBorderBrush}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="Padding" Value="4" />
+                </Style>
+
+                <Style TargetType="Separator">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Separator">
+                                <Border Height="1"
+                                        Margin="8,4"
+                                        Background="{StaticResource MenuPopupBorderBrush}" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Menu.Resources>
+            <MenuItem Header="_File" Style="{StaticResource TopLevelMenuItemStyle}">
                 <MenuItem Header="_Open..."
+                          Style="{StaticResource SubmenuMenuItemStyle}"
                           Click="OpenMenuItem_OnClick"
                           InputGestureText="Ctrl+O" />
                 <Separator />
-                <MenuItem Header="E_xit" Click="ExitMenuItem_OnClick" />
+                <MenuItem Header="E_xit"
+                          Style="{StaticResource SubmenuMenuItemStyle}"
+                          Click="ExitMenuItem_OnClick" />
             </MenuItem>
-            <MenuItem Header="_View">
+            <MenuItem Header="_View" Style="{StaticResource TopLevelMenuItemStyle}">
                 <MenuItem Header="_Reload"
+                          Style="{StaticResource SubmenuMenuItemStyle}"
                           Click="ReloadMenuItem_OnClick"
                           InputGestureText="F5" />
                 <MenuItem Header="_Settings..."
+                          Style="{StaticResource SubmenuMenuItemStyle}"
                           Click="SettingsMenuItem_OnClick"
                           InputGestureText="Ctrl+," />
             </MenuItem>
@@ -120,4 +246,3 @@
         </Grid>
     </DockPanel>
 </Window>
-

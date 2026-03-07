@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - Unreleased
+
+### Changed
+
+- Added a quick-start pointer near the top of the README so the published executable path is immediately visible.
+- Improved the app menu presentation and submenu styling to better match the midnight theme.
+- Reworked the theme settings dialog layout and button styling so the content fits cleanly at normal Windows scaling.
+
 ## [0.1.0] - Unreleased
 
 ### Added
@@ -24,6 +32,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Installer compilation still depends on a local Inno Setup installation.
 - No signed release artifacts yet.
-
-
-
