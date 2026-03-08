@@ -33,7 +33,9 @@ public partial class MainWindow : Window
     private readonly FileTextLoader _fileTextLoader;
     private readonly ThemePaletteBuilder _themePaletteBuilder;
     private readonly StartupOptions _startupOptions;
+    private readonly WindowPlacementCoordinator _windowPlacementCoordinator;
     private readonly AsyncDebouncer _watcherDebouncer = new(TimeSpan.FromMilliseconds(280));
+    private readonly AsyncDebouncer _windowPlacementDebouncer = new(TimeSpan.FromMilliseconds(140));
     private readonly SemaphoreSlim _renderLock = new(1, 1);
     private readonly TaskCompletionSource _webViewReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -58,8 +60,10 @@ public partial class MainWindow : Window
         _fileTextLoader = fileTextLoader;
         _themePaletteBuilder = themePaletteBuilder;
         _startupOptions = startupOptions;
+        _windowPlacementCoordinator = new WindowPlacementCoordinator(paths.WindowPlacementStateFilePath);
 
         InitializeComponent();
+        HookWindowPlacementTracking();
         ApplyStartupWindowPlacement();
         ApplyShellTheme();
         ShowReadyState();
@@ -85,14 +89,18 @@ public partial class MainWindow : Window
         if (_startupOptions.HasFile && string.IsNullOrWhiteSpace(_startupOptions.FilePath) is false)
         {
             await OpenFileAsync(_startupOptions.FilePath, _startupOptions.Anchor);
+            RememberCurrentWindowPlacement();
             return;
         }
 
         UpdateWindowTitle(null);
+        RememberCurrentWindowPlacement();
     }
 
     private void Window_OnClosed(object? sender, EventArgs e)
     {
+        RememberCurrentWindowPlacement();
+        _windowPlacementDebouncer.Dispose();
         _watcherDebouncer.Dispose();
         DisposeFileWatcher();
         _renderLock.Dispose();
@@ -270,50 +278,113 @@ public partial class MainWindow : Window
             " ",
             [
                 QuoteArgument(fileArgument),
-                FormattableString.Invariant($"--window-left={placement.X:0.###}"),
-                FormattableString.Invariant($"--window-top={placement.Y:0.###}"),
+                FormattableString.Invariant($"--window-left={placement.Left:0.###}"),
+                FormattableString.Invariant($"--window-top={placement.Top:0.###}"),
             ]);
     }
 
-    private System.Windows.Point GetCascadedWindowPlacement()
+    private void HookWindowPlacementTracking()
     {
-        var bounds = WindowState == WindowState.Normal && RestoreBounds.IsEmpty is false
-            ? RestoreBounds
-            : new Rect(Left, Top, ActualWidth > 0 ? ActualWidth : Width, ActualHeight > 0 ? ActualHeight : Height);
-        var windowWidth = GetEffectiveWindowDimension(bounds.Width, Width, MinWidth);
-        var windowHeight = GetEffectiveWindowDimension(bounds.Height, Height, MinHeight);
-        var targetLeft = bounds.Left + CascadedWindowOffset;
-        var targetTop = bounds.Top + CascadedWindowOffset;
+        LocationChanged += (_, _) => ScheduleWindowPlacementSave();
+        SizeChanged += (_, _) => ScheduleWindowPlacementSave();
+        StateChanged += (_, _) => ScheduleWindowPlacementSave();
+    }
 
-        return ClampToVirtualScreen(targetLeft, targetTop, windowWidth, windowHeight);
+    private WindowPlacement GetCascadedWindowPlacement()
+    {
+        return WindowPlacementPlanner.Cascade(
+            CreateCurrentWindowPlacement(),
+            CascadedWindowOffset,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth,
+            SystemParameters.VirtualScreenHeight);
     }
 
     private void ApplyStartupWindowPlacement()
     {
-        if (_startupOptions.HasWindowPlacement is false || _startupOptions.WindowLeft is null || _startupOptions.WindowTop is null)
+        var windowWidth = GetEffectiveWindowDimension(Width, Width, MinWidth);
+        var windowHeight = GetEffectiveWindowDimension(Height, Height, MinHeight);
+        var placement = _windowPlacementCoordinator.ResolveStartupPlacement(
+            _startupOptions,
+            windowWidth,
+            windowHeight,
+            CascadedWindowOffset,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth,
+            SystemParameters.VirtualScreenHeight);
+        if (placement is null)
         {
             return;
         }
 
-        var windowWidth = GetEffectiveWindowDimension(Width, Width, MinWidth);
-        var windowHeight = GetEffectiveWindowDimension(Height, Height, MinHeight);
-        var placement = ClampToVirtualScreen(_startupOptions.WindowLeft.Value, _startupOptions.WindowTop.Value, windowWidth, windowHeight);
-
         WindowStartupLocation = WindowStartupLocation.Manual;
-        Left = placement.X;
-        Top = placement.Y;
+        Left = placement.Left;
+        Top = placement.Top;
     }
 
-    private static System.Windows.Point ClampToVirtualScreen(double left, double top, double windowWidth, double windowHeight)
+    private void ScheduleWindowPlacementSave()
     {
-        var virtualLeft = SystemParameters.VirtualScreenLeft;
-        var virtualTop = SystemParameters.VirtualScreenTop;
-        var maxLeft = Math.Max(virtualLeft, virtualLeft + SystemParameters.VirtualScreenWidth - windowWidth);
-        var maxTop = Math.Max(virtualTop, virtualTop + SystemParameters.VirtualScreenHeight - windowHeight);
+        if (IsLoaded is false)
+        {
+            return;
+        }
 
-        return new System.Windows.Point(
-            Math.Clamp(left, virtualLeft, maxLeft),
-            Math.Clamp(top, virtualTop, maxTop));
+        _windowPlacementDebouncer.Schedule(async cancellationToken =>
+        {
+            await Dispatcher.InvokeAsync(
+                () =>
+                {
+                    if (cancellationToken.IsCancellationRequested is false)
+                    {
+                        RememberCurrentWindowPlacement();
+                    }
+                },
+                DispatcherPriority.Background,
+                cancellationToken);
+        });
+    }
+
+    private void RememberCurrentWindowPlacement()
+    {
+        if (IsLoaded is false)
+        {
+            return;
+        }
+
+        _windowPlacementCoordinator.RememberWindowPlacement(CreateCurrentWindowPlacement());
+    }
+
+    private WindowPlacement CreateCurrentWindowPlacement()
+    {
+        var bounds = GetCurrentWindowBounds();
+        var placement = new WindowPlacement(
+            bounds.Left,
+            bounds.Top,
+            GetEffectiveWindowDimension(bounds.Width, Width, MinWidth),
+            GetEffectiveWindowDimension(bounds.Height, Height, MinHeight));
+
+        return WindowPlacementPlanner.Clamp(
+            placement,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth,
+            SystemParameters.VirtualScreenHeight);
+    }
+
+    private Rect GetCurrentWindowBounds()
+    {
+        if (RestoreBounds.IsEmpty is false)
+        {
+            return RestoreBounds;
+        }
+
+        return new Rect(
+            Left,
+            Top,
+            ActualWidth > 0 ? ActualWidth : Width,
+            ActualHeight > 0 ? ActualHeight : Height);
     }
 
     private static double GetEffectiveWindowDimension(double primaryValue, double fallbackValue, double minimumValue)

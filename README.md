@@ -19,7 +19,7 @@ This repository is intentionally stopping just short of a `1.0.0` stamp so the f
 
 - Open a Markdown file from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
 - Keep one Markdown file per window.
-- Open a new window when you choose another Markdown file while the current window already has one open, with a small cascade offset so windows do not stack exactly on top of each other.
+- Open additional windows with a small cascade offset so they do not stack exactly on top of each other, whether they come from in-app opening, drag-and-drop, Explorer, or launching the app again while it is already open.
 - Auto-refresh the preview when the source file changes on disk.
 - Render GitHub-style Markdown structure with a midnight-dark visual theme.
 - Open local Markdown links in a new app window.

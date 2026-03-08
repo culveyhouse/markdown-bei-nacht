@@ -14,6 +14,7 @@ AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
 DefaultDirName={localappdata}\Programs\{#AppName}
 DefaultGroupName={#AppName}
+SetupIconFile=..\src\MarkdownBeiNacht\Assets\AppIcon.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 OutputDir=..\artifacts\installer
 OutputBaseFilename=MarkdownBeiNacht-Setup
@@ -98,3 +99,4 @@ begin
     Result := True;
   end;
 end;
+

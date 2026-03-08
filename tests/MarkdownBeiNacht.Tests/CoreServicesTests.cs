@@ -40,6 +40,36 @@ public sealed class CoreServicesTests
     }
 
     [Fact]
+    public void WindowPlacementPlanner_CascadesWithinBounds()
+    {
+        var result = WindowPlacementPlanner.Cascade(
+            new WindowPlacement(100, 120, 1280, 900),
+            28,
+            0,
+            0,
+            1920,
+            1080);
+
+        Assert.Equal(128, result.Left);
+        Assert.Equal(148, result.Top);
+    }
+
+    [Fact]
+    public void WindowPlacementPlanner_ClampsCascadeNearScreenEdge()
+    {
+        var result = WindowPlacementPlanner.Cascade(
+            new WindowPlacement(900, 400, 1280, 900),
+            28,
+            0,
+            0,
+            1920,
+            1080);
+
+        Assert.Equal(640, result.Left);
+        Assert.Equal(180, result.Top);
+    }
+
+    [Fact]
     public void MarkdownLinkResolver_ResolvesRelativeMarkdownTarget()
     {
         var currentDirectory = CreateTempDirectory();
