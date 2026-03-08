@@ -11,12 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Global cascading window placement so additional Markdown bei Nacht windows also offset cleanly when launched again from the `.exe` or from Explorer while another app window is already open.
 - A bundled Windows app icon generated from the new `markdown_logo.png` artwork and embedded as a multi-size `.ico` asset for the app executable.
 - Installer branding that uses the same logo on the setup executable and installer UI entry points.
+- An in-app Help > User Guide entry plus F1 shortcut that opens the installed guide inside Markdown bei Nacht.
 
 ### Changed
 
 - Updated app and installer version metadata to `0.9.0`.
 - Expanded the documented `0.8.0` near-release polish work into a more complete `0.9.0` pre-release with branded Windows surfaces and broader multi-window polish.
-- Updated README and installed user-guide wording so the documented behavior matches the latest cascade and branding work.
+- Updated README and installed user-guide wording so the documented behavior matches the latest cascade, branding, and in-app help work.
 
 ### Fixed
 
@@ -84,3 +85,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Installer compilation still depends on a local Inno Setup installation.
 - No signed release artifacts yet.
+

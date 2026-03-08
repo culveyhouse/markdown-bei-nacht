@@ -450,9 +450,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void UserGuideMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        await OpenUserGuideAsync();
+    }
+
     private void ExitMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private async Task OpenUserGuideAsync()
+    {
+        if (File.Exists(_paths.UserGuideFilePath) is false)
+        {
+            System.Windows.MessageBox.Show(
+                this,
+                "Markdown bei Nacht could not find its installed user guide. Reinstall the app or check that README.md is present in the app folder.",
+                AppDisplayName,
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
+        await OpenSelectedMarkdownFileAsync(_paths.UserGuideFilePath);
     }
 
     private async Task OpenFilePickerAsync()
@@ -816,6 +837,14 @@ public partial class MainWindow : Window
         {
             e.Handled = true;
             ReloadMenuItem_OnClick(sender, new RoutedEventArgs());
+            return;
+        }
+
+        if (e.Key == Key.F1)
+        {
+            e.Handled = true;
+            _ = OpenUserGuideAsync();
+            return;
         }
     }
 

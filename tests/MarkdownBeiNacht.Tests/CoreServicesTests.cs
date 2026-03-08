@@ -1,6 +1,8 @@
 using System.Text;
+using System.Text.Json;
 using MarkdownBeiNacht.Core.Models;
 using MarkdownBeiNacht.Core.Services;
+using MarkdownBeiNacht.Infrastructure;
 
 namespace MarkdownBeiNacht.Tests;
 
@@ -202,6 +204,83 @@ public sealed class CoreServicesTests
     public void WindowOpenPolicy_ReusesCurrentWindowOnlyUntilDocumentLoads(bool hasLoadedDocument, bool expected)
     {
         Assert.Equal(expected, WindowOpenPolicy.ShouldReuseCurrentWindow(hasLoadedDocument));
+    }
+
+    [Fact]
+    public void ApplicationPaths_UsesInstalledGuideAndLocalAppDataLocations()
+    {
+        var paths = new ApplicationPaths();
+
+        Assert.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), paths.AppDataDirectory);
+        Assert.Equal(Path.Combine(paths.AppDataDirectory, "settings.json"), paths.SettingsFilePath);
+        Assert.Equal(Path.Combine(paths.AppDataDirectory, "window-placement.json"), paths.WindowPlacementStateFilePath);
+        Assert.Equal(Path.Combine(paths.AppDataDirectory, "WebView2"), paths.WebViewUserDataDirectory);
+        Assert.Equal(Path.Combine(AppContext.BaseDirectory, "Assets"), paths.AssetsDirectory);
+        Assert.Equal(Path.Combine(AppContext.BaseDirectory, "README.md"), paths.UserGuideFilePath);
+    }
+
+    [Fact]
+    public void WindowPlacementCoordinator_ReturnsNullWithoutExplicitPlacementOrPriorInstance()
+    {
+        var tempDirectory = CreateTempDirectory();
+        try
+        {
+            var statePath = Path.Combine(tempDirectory, "window-placement.json");
+            var coordinator = new WindowPlacementCoordinator(statePath);
+
+            var result = coordinator.ResolveStartupPlacement(
+                new StartupOptions(null, null, null, null),
+                1280,
+                900,
+                28,
+                0,
+                0,
+                1920,
+                1080);
+
+            Assert.Null(result);
+            Assert.False(File.Exists(statePath));
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, true);
+        }
+    }
+
+    [Fact]
+    public void WindowPlacementCoordinator_ClampsAndPersistsExplicitPlacement()
+    {
+        var tempDirectory = CreateTempDirectory();
+        try
+        {
+            var statePath = Path.Combine(tempDirectory, "window-placement.json");
+            var coordinator = new WindowPlacementCoordinator(statePath);
+
+            var result = coordinator.ResolveStartupPlacement(
+                new StartupOptions(null, null, 5000, -100),
+                1280,
+                900,
+                28,
+                0,
+                0,
+                1920,
+                1080);
+
+            Assert.NotNull(result);
+            Assert.Equal(640, result!.Left);
+            Assert.Equal(0, result.Top);
+            Assert.False(File.Exists(statePath + ".tmp"));
+
+            var persisted = JsonSerializer.Deserialize<WindowPlacement>(
+                File.ReadAllText(statePath),
+                new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+            Assert.Equal(result, persisted);
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, true);
+        }
     }
 
     private static string CreateTempDirectory()

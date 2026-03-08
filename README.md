@@ -28,7 +28,7 @@ This repository is intentionally stopping just short of a `1.0.0` stamp so the f
 - Resolve relative local assets against the current Markdown file.
 - Block remote images intentionally.
 - Persist a configurable base dark color in local app settings.
-- Install a user-facing `README.md` guide with the app.
+- Install a user-facing `README.md` guide with the app and open it directly from `Help > User Guide` or `F1`.
 
 ## Architecture
 
@@ -123,7 +123,7 @@ Current packaging goals:
 - visible in Explorer `Open with` for `.md`
 - no forced takeover of the default `.md` association
 - optional desktop shortcut during install
-- installed user guide in the app folder and Start Menu
+- installed user guide in the app folder, Start Menu, and in-app `Help` menu
 - WebView2 bootstrap when the runtime is missing
 
 Build the installer from the repository root with:

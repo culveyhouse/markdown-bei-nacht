@@ -49,6 +49,8 @@ New windows open with a small cascade offset, so they do not land in the exact s
 
 ## Find Help After Install
 
+You can open the guide from `Help > User Guide` or by pressing `F1` inside Markdown bei Nacht.
+
 The Start Menu includes:
 
 - `Markdown bei Nacht`

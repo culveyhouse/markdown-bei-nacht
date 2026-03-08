@@ -167,6 +167,12 @@
                           Click="SettingsMenuItem_OnClick"
                           InputGestureText="Ctrl+," />
             </MenuItem>
+            <MenuItem Header="_Help" Style="{StaticResource TopLevelMenuItemStyle}">
+                <MenuItem Header="_User Guide"
+                          Style="{StaticResource SubmenuMenuItemStyle}"
+                          Click="UserGuideMenuItem_OnClick"
+                          InputGestureText="F1" />
+            </MenuItem>
         </Menu>
 
         <Grid x:Name="RootGrid" Background="#06101D">
