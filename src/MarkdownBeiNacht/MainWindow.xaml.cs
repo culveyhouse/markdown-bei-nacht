@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using WpfDataObject = System.Windows.IDataObject;
 using WpfDragEventArgs = System.Windows.DragEventArgs;
@@ -19,6 +21,8 @@ namespace MarkdownBeiNacht;
 public partial class MainWindow : Window
 {
     private const string AppDisplayName = "Markdown bei Nacht";
+    private const string ReadyStateTitle = "Ready to Preview Markdown";
+    private const string ReadyStateMessage = "Open a Markdown file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with. If this window already has a file open, another Markdown file opens in a new window.";
     private const string WebView2DownloadUrl = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -37,6 +41,7 @@ public partial class MainWindow : Window
     private string? _currentFilePath;
     private string? _pendingAnchor;
     private bool _isInitialized;
+    private bool _hasLoadedDocument;
 
     public MainWindow(
         ApplicationPaths paths,
@@ -54,9 +59,8 @@ public partial class MainWindow : Window
         _startupOptions = startupOptions;
 
         InitializeComponent();
-        ShowState(
-            "Ready to Preview Markdown",
-            "Open a Markdown file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with.");
+        ApplyShellTheme();
+        ShowReadyState();
     }
 
     private async void Window_OnLoaded(object sender, RoutedEventArgs e)
@@ -68,14 +72,15 @@ public partial class MainWindow : Window
 
         _isInitialized = true;
         _settings = await _settingsStore.LoadAsync(_paths.SettingsFilePath);
+        ApplyShellTheme();
 
-        if (!await InitializeWebViewAsync())
+        if (await InitializeWebViewAsync() is false)
         {
             Close();
             return;
         }
 
-        if (_startupOptions.HasFile && !string.IsNullOrWhiteSpace(_startupOptions.FilePath))
+        if (_startupOptions.HasFile && string.IsNullOrWhiteSpace(_startupOptions.FilePath) is false)
         {
             await OpenFileAsync(_startupOptions.FilePath, _startupOptions.Anchor);
             return;
@@ -95,7 +100,9 @@ public partial class MainWindow : Window
     {
         try
         {
-            await PreviewWebView.EnsureCoreWebView2Async();
+            Directory.CreateDirectory(_paths.WebViewUserDataDirectory);
+            var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: _paths.WebViewUserDataDirectory);
+            await PreviewWebView.EnsureCoreWebView2Async(environment);
         }
         catch (WebView2RuntimeNotFoundException)
         {
@@ -113,18 +120,43 @@ public partial class MainWindow : Window
 
             return false;
         }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or COMException)
+        {
+            System.Windows.MessageBox.Show(
+                this,
+                "Markdown bei Nacht could not initialize its browser data folder in LocalAppData. Check folder permissions and try again.",
+                AppDisplayName,
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return false;
+        }
 
         PreviewWebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
         PreviewWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
         PreviewWebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
         PreviewWebView.CoreWebView2.WebMessageReceived += CoreWebView2_OnWebMessageReceived;
         PreviewWebView.CoreWebView2.DOMContentLoaded += CoreWebView2_OnDOMContentLoaded;
+        PreviewWebView.CoreWebView2.NavigationCompleted += CoreWebView2_OnNavigationCompleted;
         PreviewWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
             "appassets",
             _paths.AssetsDirectory,
             CoreWebView2HostResourceAccessKind.Allow);
         PreviewWebView.Source = new Uri("https://appassets/preview-shell.html");
-        await _webViewReady.Task;
+
+        var readyTask = _webViewReady.Task;
+        var completedTask = await Task.WhenAny(readyTask, Task.Delay(TimeSpan.FromSeconds(10)));
+        if (completedTask != readyTask)
+        {
+            System.Windows.MessageBox.Show(
+                this,
+                "Markdown bei Nacht could not finish loading its preview shell. Please restart the app and try again.",
+                AppDisplayName,
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return false;
+        }
+
+        await readyTask;
         return true;
     }
 
@@ -133,11 +165,19 @@ public partial class MainWindow : Window
         _webViewReady.TrySetResult();
     }
 
+    private void CoreWebView2_OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        if (e.IsSuccess)
+        {
+            _webViewReady.TrySetResult();
+        }
+    }
+
     private async void CoreWebView2_OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
         try
         {
-                        var message = JsonSerializer.Deserialize<LinkMessage>(e.TryGetWebMessageAsString(), JsonOptions);
+            var message = JsonSerializer.Deserialize<LinkMessage>(e.TryGetWebMessageAsString(), JsonOptions);
             if (message is not { Type: "linkClick", Href: { Length: > 0 } hrefValue })
             {
                 return;
@@ -175,26 +215,53 @@ public partial class MainWindow : Window
 
     private void LaunchNewMarkdownWindow(ResolvedLinkTarget target)
     {
+        if (string.IsNullOrWhiteSpace(target.LocalPath) is false)
+        {
+            LaunchNewMarkdownWindow(target.LocalPath, target.Anchor);
+            return;
+        }
+
+        if (target.Uri is not null)
+        {
+            LaunchNewMarkdownWindowWithArgument(target.Uri.AbsoluteUri, null);
+        }
+    }
+
+    private void LaunchNewMarkdownWindow(string filePath, string? anchor = null)
+    {
+        var normalizedPath = MarkdownPathUtilities.NormalizePath(filePath);
+        var argument = string.IsNullOrWhiteSpace(anchor)
+            ? normalizedPath
+            : new UriBuilder(new Uri(normalizedPath))
+            {
+                Fragment = anchor,
+            }.Uri.AbsoluteUri;
+
+        LaunchNewMarkdownWindowWithArgument(argument, normalizedPath);
+    }
+
+    private void LaunchNewMarkdownWindowWithArgument(string argument, string? localPath)
+    {
         var executablePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
         if (string.IsNullOrWhiteSpace(executablePath))
         {
             return;
         }
 
-        var argument = target.Uri is not null ? target.Uri.AbsoluteUri : target.LocalPath!;
+        var workingDirectory = string.IsNullOrWhiteSpace(localPath)
+            ? AppContext.BaseDirectory
+            : Path.GetDirectoryName(localPath) ?? AppContext.BaseDirectory;
         var startInfo = new ProcessStartInfo(executablePath)
         {
             Arguments = QuoteArgument(argument),
             UseShellExecute = true,
-            WorkingDirectory = !string.IsNullOrWhiteSpace(target.LocalPath)
-                ? Path.GetDirectoryName(target.LocalPath)
-                : AppContext.BaseDirectory,
+            WorkingDirectory = workingDirectory,
         };
 
         Process.Start(startInfo);
     }
 
-    private static string QuoteArgument(string value) => $"\"{value.Replace("\"", "\\\"")}\"";
+    private static string QuoteArgument(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
 
     private async void OpenMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
@@ -221,15 +288,31 @@ public partial class MainWindow : Window
             Owner = this,
         };
 
-        if (window.ShowDialog() != true || window.SettingsResult is null)
+        if (window.ShowDialog() is not true || window.SettingsResult is null)
         {
             return;
         }
 
-        _settings = window.SettingsResult.Normalize();
-        await _settingsStore.SaveAsync(_paths.SettingsFilePath, _settings);
+        var updatedSettings = window.SettingsResult.Normalize();
+        try
+        {
+            await _settingsStore.SaveAsync(_paths.SettingsFilePath, updatedSettings);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            System.Windows.MessageBox.Show(
+                this,
+                "Markdown bei Nacht could not save your theme setting. Check that LocalAppData is writable and try again.",
+                AppDisplayName,
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return;
+        }
 
-        if (!string.IsNullOrWhiteSpace(_currentFilePath))
+        _settings = updatedSettings;
+        ApplyShellTheme();
+
+        if (string.IsNullOrWhiteSpace(_currentFilePath) is false)
         {
             await RenderCurrentFileAsync(true);
         }
@@ -250,12 +333,23 @@ public partial class MainWindow : Window
             Multiselect = false,
         };
 
-        if (dialog.ShowDialog(this) != true)
+        if (dialog.ShowDialog(this) is not true)
         {
             return;
         }
 
-        await OpenFileAsync(dialog.FileName);
+        await OpenSelectedMarkdownFileAsync(dialog.FileName);
+    }
+
+    private Task OpenSelectedMarkdownFileAsync(string filePath, string? anchor = null)
+    {
+        if (WindowOpenPolicy.ShouldReuseCurrentWindow(_hasLoadedDocument))
+        {
+            return OpenFileAsync(filePath, anchor);
+        }
+
+        LaunchNewMarkdownWindow(filePath, anchor);
+        return Task.CompletedTask;
     }
 
     private async Task OpenFileAsync(string filePath, string? anchor = null)
@@ -271,10 +365,9 @@ public partial class MainWindow : Window
     {
         if (string.IsNullOrWhiteSpace(_currentFilePath))
         {
+            _hasLoadedDocument = false;
             UpdateWindowTitle(null);
-            ShowState(
-                "Ready to Preview Markdown",
-                "Open a Markdown file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with.");
+            ShowReadyState();
             return;
         }
 
@@ -292,6 +385,7 @@ public partial class MainWindow : Window
             var rendered = _renderer.Render(fileResult.Content ?? string.Empty, _currentFilePath, Path.GetFileNameWithoutExtension(_currentFilePath));
             await ApplyRenderAsync(rendered, scrollRatio, _pendingAnchor);
             _pendingAnchor = null;
+            _hasLoadedDocument = true;
             ShowPreview();
         }
         finally
@@ -375,6 +469,64 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ApplyShellTheme()
+    {
+        var baseColor = ColorUtilities.NormalizeHexColor(_settings.BaseColor);
+        var palette = _themePaletteBuilder.BuildCssVariables(baseColor);
+
+        Background = CreateSolidBrush(palette["--color-bg"]);
+        RootGrid.Background = CreateSolidBrush(palette["--color-bg"]);
+        MainMenu.Background = CreateSolidBrush(ColorUtilities.Mix(baseColor, "#0E1829", 0.44));
+        PreviewWebView.DefaultBackgroundColor = System.Drawing.ColorTranslator.FromHtml(palette["--color-bg"]);
+
+        MainMenu.Foreground = CreateSolidBrush(palette["--color-text"]);
+        SetMenuResourceBrush("MenuBarForegroundBrush", palette["--color-text"]);
+        SetMenuResourceBrush("MenuBarHighlightBrush", ColorUtilities.Mix(baseColor, "#18314A", 0.62));
+        SetMenuResourceBrush("MenuPopupBackgroundBrush", ColorUtilities.Mix(baseColor, "#0E1829", 0.48));
+        SetMenuResourceBrush("MenuPopupForegroundBrush", palette["--color-text"]);
+        SetMenuResourceBrush("MenuPopupBorderBrush", ColorUtilities.Mix(baseColor, "#5F7FA3", 0.44));
+        SetMenuResourceBrush("MenuPopupHighlightBrush", ColorUtilities.Mix(baseColor, "#22435F", 0.62));
+        SetMenuResourceBrush("MenuPopupDisabledBrush", ColorUtilities.Mix(baseColor, "#8EA4BC", 0.56));
+
+        StatePanel.Background = CreateSolidBrush(palette["--color-panel"]);
+        StatePanel.BorderBrush = CreateSolidBrush(ColorUtilities.Mix(baseColor, "#7BA7D3", 0.38));
+        StateEyebrowText.Foreground = CreateSolidBrush(palette["--color-link"]);
+        StateTitleText.Foreground = CreateSolidBrush(palette["--color-text"]);
+        StateMessageText.Foreground = CreateSolidBrush(palette["--color-muted"]);
+        StateHintText.Foreground = CreateSolidBrush(ColorUtilities.Mix(baseColor, "#AFC4DA", 0.72));
+
+        DropOverlay.Background = CreateAlphaBrush(ColorUtilities.Mix(baseColor, "#091320", 0.16), 0.64);
+        DropOverlay.BorderBrush = CreateAlphaBrush(ColorUtilities.Mix(baseColor, "#7BA7D3", 0.52), 0.56);
+        DropOverlayInnerBorder.Background = CreateAlphaBrush(ColorUtilities.Mix(baseColor, "#091320", 0.1), 0.22);
+        DropOverlayInnerBorder.BorderBrush = CreateAlphaBrush(ColorUtilities.Mix(baseColor, "#71D1FF", 0.72), 0.44);
+        DropOverlayTitleText.Foreground = CreateSolidBrush(palette["--color-text"]);
+        DropOverlayMessageText.Foreground = CreateSolidBrush(ColorUtilities.Mix(baseColor, "#C4D6E7", 0.8));
+    }
+
+    private void SetMenuResourceBrush(string key, string hexColor)
+    {
+        MainMenu.Resources[key] = CreateSolidBrush(hexColor);
+    }
+
+    private static SolidColorBrush CreateSolidBrush(string hexColor)
+    {
+        var brush = new SolidColorBrush(ParseColor(hexColor));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static SolidColorBrush CreateAlphaBrush(string hexColor, double opacity)
+    {
+        var color = ParseColor(hexColor);
+        color.A = (byte)Math.Round(Math.Clamp(opacity, 0d, 1d) * 255d);
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
+    }
+
+    private static System.Windows.Media.Color ParseColor(string hexColor) =>
+        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(ColorUtilities.NormalizeHexColor(hexColor))!;
+
     private void ShowFileError(FileLoadResult result)
     {
         var title = result.FailureKind switch
@@ -394,19 +546,26 @@ public partial class MainWindow : Window
         ShowState(title, message, "Open Different File");
     }
 
+    private void ShowReadyState()
+    {
+        ShowState(ReadyStateTitle, ReadyStateMessage);
+    }
+
     private void ShowState(string title, string message, string buttonText = "Open File")
     {
         StateTitleText.Text = title;
         StateMessageText.Text = message;
         StateOpenButton.Content = buttonText;
         StatePanel.Visibility = Visibility.Visible;
-        PreviewWebView.Visibility = Visibility.Collapsed;
+        PreviewWebView.Visibility = Visibility.Hidden;
+        PreviewWebView.IsHitTestVisible = false;
     }
 
     private void ShowPreview()
     {
         StatePanel.Visibility = Visibility.Collapsed;
         PreviewWebView.Visibility = Visibility.Visible;
+        PreviewWebView.IsHitTestVisible = true;
     }
 
     private void UpdateWindowTitle(string? filePath)
@@ -551,7 +710,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        await OpenFileAsync(path);
+        await OpenSelectedMarkdownFileAsync(path);
     }
 
     private static bool TryGetDraggedMarkdownPath(WpfDataObject dataObject, out string? path)
@@ -592,8 +751,3 @@ public partial class MainWindow : Window
 
     private sealed record LinkMessage(string Type, string Href);
 }
-
-
-
-
-

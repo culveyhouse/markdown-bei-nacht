@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
@@ -26,10 +26,6 @@ $bootstrapperPath = Join-Path $installerDependencyDir "MicrosoftEdgeWebView2Setu
 
 if (Test-Path $publishOutput) {
     foreach ($item in Get-ChildItem $publishOutput -Force) {
-        if ($item.PSIsContainer -and $item.Name -like '*.WebView2') {
-            continue
-        }
-
         try {
             Remove-Item $item.FullName -Recurse -Force
         }
@@ -59,7 +55,15 @@ $env:DOTNET_NOLOGO = "1"
     -c $Configuration `
     -r $Runtime `
     --self-contained true `
+    -p:DebugSymbols=false `
+    -p:DebugType=None `
     -o $publishOutput
+if ($LASTEXITCODE -ne 0) {
+    throw "dotnet publish failed with exit code $LASTEXITCODE."
+}
+
+Get-ChildItem $publishOutput -Recurse -Directory -Filter "*.WebView2" | Remove-Item -Recurse -Force
+Get-ChildItem $publishOutput -Recurse -Filter "*.pdb" | Remove-Item -Force
 
 if (-not (Test-Path $bootstrapperPath)) {
     try {

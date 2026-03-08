@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$Configuration = "Debug",
     [switch]$NoRestore
@@ -32,4 +32,6 @@ if ($NoRestore) {
 }
 
 & $dotnet @arguments
-
+if ($LASTEXITCODE -ne 0) {
+    throw "dotnet build failed with exit code $LASTEXITCODE."
+}

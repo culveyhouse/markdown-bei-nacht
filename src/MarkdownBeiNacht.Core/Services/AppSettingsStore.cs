@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using MarkdownBeiNacht.Core.Models;
 
 namespace MarkdownBeiNacht.Core.Services;
@@ -39,8 +39,23 @@ public sealed class AppSettingsStore
             Directory.CreateDirectory(directory);
         }
 
-        await using var stream = File.Create(settingsPath);
-        await JsonSerializer.SerializeAsync(stream, normalized, SerializerOptions, cancellationToken);
+        var tempPath = settingsPath + ".tmp";
+        try
+        {
+            await using (var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, normalized, SerializerOptions, cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+            }
+
+            File.Move(tempPath, settingsPath, true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
     }
 }
-

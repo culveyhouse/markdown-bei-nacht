@@ -1,6 +1,6 @@
 #define AppName "Markdown bei Nacht"
 #define AppExeName "MarkdownBeiNacht.exe"
-#define AppVersion "0.2.0"
+#define AppVersion "0.8.0"
 #define AppPublisher "Markdown bei Nacht"
 #define PublishDir "..\artifacts\publish\win-x64"
 #define BootstrapperSource "dependencies\MicrosoftEdgeWebView2Setup.exe"
@@ -10,6 +10,7 @@
 AppId={{9F79B0A1-CFEA-48E0-8C47-F8CB5B3E0CC1}
 AppName={#AppName}
 AppVersion={#AppVersion}
+AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
 DefaultDirName={localappdata}\Programs\{#AppName}
 DefaultGroupName={#AppName}
@@ -24,9 +25,14 @@ ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
 DisableProgramGroupPage=yes
 ChangesAssociations=yes
+VersionInfoVersion={#AppVersion}
+VersionInfoProductVersion={#AppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
 
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -34,6 +40,8 @@ Source: "{#BootstrapperSource}"; DestDir: "{tmp}"; DestName: "MicrosoftEdgeWebVi
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
+Name: "{group}\{#AppName} User Guide"; Filename: "{app}\{#AppExeName}"; Parameters: """{app}\README.md"""; WorkingDir: "{app}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Registry]
 Root: HKCU; Subkey: "Software\Classes\Applications\{#AppExeName}"; ValueType: none; Flags: uninsdeletekeyifempty
@@ -90,5 +98,3 @@ begin
     Result := True;
   end;
 end;
-
-

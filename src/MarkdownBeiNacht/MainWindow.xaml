@@ -16,11 +16,12 @@
         Closed="Window_OnClosed"
         PreviewKeyDown="Window_OnPreviewKeyDown"
         AllowDrop="True"
+        PreviewDragEnter="Window_OnPreviewDragOver"
         PreviewDragOver="Window_OnPreviewDragOver"
         PreviewDragLeave="Window_OnPreviewDragLeave"
         Drop="Window_OnDrop">
     <DockPanel>
-        <Menu DockPanel.Dock="Top"
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top"
               Background="#091120"
               Foreground="#E5F1FF"
               Padding="6,4">
@@ -34,7 +35,7 @@
                 <SolidColorBrush x:Key="MenuPopupDisabledBrush" Color="#6F8197" />
 
                 <Style x:Key="TopLevelMenuItemStyle" TargetType="MenuItem">
-                    <Setter Property="Foreground" Value="{StaticResource MenuBarForegroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource MenuBarForegroundBrush}" />
                     <Setter Property="Background" Value="Transparent" />
                     <Setter Property="Padding" Value="10,4" />
                     <Setter Property="Template">
@@ -54,8 +55,8 @@
                                            Placement="Bottom"
                                            PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                                            PopupAnimation="Fade">
-                                        <Border Background="{StaticResource MenuPopupBackgroundBrush}"
-                                                BorderBrush="{StaticResource MenuPopupBorderBrush}"
+                                        <Border Background="{DynamicResource MenuPopupBackgroundBrush}"
+                                                BorderBrush="{DynamicResource MenuPopupBorderBrush}"
                                                 BorderThickness="1"
                                                 Padding="4"
                                                 SnapsToDevicePixels="True">
@@ -66,11 +67,11 @@
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource MenuBarHighlightBrush}" />
+                                        <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource MenuBarHighlightBrush}" />
                                         <Setter Property="Foreground" Value="#FFFFFF" />
                                     </Trigger>
                                     <Trigger Property="IsSubmenuOpen" Value="True">
-                                        <Setter TargetName="RootBorder" Property="Background" Value="{StaticResource MenuBarHighlightBrush}" />
+                                        <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource MenuBarHighlightBrush}" />
                                         <Setter Property="Foreground" Value="#FFFFFF" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
@@ -80,14 +81,14 @@
                 </Style>
 
                 <Style x:Key="SubmenuMenuItemStyle" TargetType="MenuItem">
-                    <Setter Property="Foreground" Value="{StaticResource MenuPopupForegroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource MenuPopupForegroundBrush}" />
                     <Setter Property="Background" Value="Transparent" />
                     <Setter Property="Padding" Value="12,8" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="MenuItem">
-                                <Border Background="{StaticResource MenuPopupBackgroundBrush}"
-                                        BorderBrush="{StaticResource MenuPopupBorderBrush}"
+                                <Border Background="{DynamicResource MenuPopupBackgroundBrush}"
+                                        BorderBrush="{DynamicResource MenuPopupBorderBrush}"
                                         BorderThickness="0">
                                     <Grid MinWidth="180">
                                         <Border x:Name="ItemBackground"
@@ -113,11 +114,11 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter TargetName="ItemBackground" Property="Background" Value="{StaticResource MenuPopupHighlightBrush}" />
+                                        <Setter TargetName="ItemBackground" Property="Background" Value="{DynamicResource MenuPopupHighlightBrush}" />
                                         <Setter Property="Foreground" Value="#FFFFFF" />
                                     </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Foreground" Value="{StaticResource MenuPopupDisabledBrush}" />
+                                        <Setter Property="Foreground" Value="{DynamicResource MenuPopupDisabledBrush}" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -126,9 +127,9 @@
                 </Style>
 
                 <Style TargetType="ContextMenu">
-                    <Setter Property="Background" Value="{StaticResource MenuPopupBackgroundBrush}" />
-                    <Setter Property="Foreground" Value="{StaticResource MenuPopupForegroundBrush}" />
-                    <Setter Property="BorderBrush" Value="{StaticResource MenuPopupBorderBrush}" />
+                    <Setter Property="Background" Value="{DynamicResource MenuPopupBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource MenuPopupForegroundBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource MenuPopupBorderBrush}" />
                     <Setter Property="BorderThickness" Value="1" />
                     <Setter Property="Padding" Value="4" />
                 </Style>
@@ -139,7 +140,7 @@
                             <ControlTemplate TargetType="Separator">
                                 <Border Height="1"
                                         Margin="8,4"
-                                        Background="{StaticResource MenuPopupBorderBrush}" />
+                                        Background="{DynamicResource MenuPopupBorderBrush}" />
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
@@ -167,10 +168,17 @@
             </MenuItem>
         </Menu>
 
-        <Grid Background="#06101D">
-            <wv2:WebView2 x:Name="PreviewWebView"
-                          Visibility="Collapsed"
-                          DefaultBackgroundColor="#06101D" />
+        <Grid x:Name="RootGrid" Background="#06101D">
+            <wv2:WebView2CompositionControl x:Name="PreviewWebView"
+                                            AllowDrop="True"
+                                            AllowExternalDrop="False"
+                                            PreviewDragEnter="Window_OnPreviewDragOver"
+                                            PreviewDragOver="Window_OnPreviewDragOver"
+                                            PreviewDragLeave="Window_OnPreviewDragLeave"
+                                            Drop="Window_OnDrop"
+                                            Visibility="Hidden"
+                                            IsHitTestVisible="False"
+                                            DefaultBackgroundColor="#06101D" />
 
             <Border x:Name="StatePanel"
                     Margin="32"
@@ -208,9 +216,10 @@
                                 Height="36"
                                 Margin="0,0,12,0"
                                 Click="OpenFileButton_OnClick" />
-                        <TextBlock VerticalAlignment="Center"
+                        <TextBlock x:Name="StateHintText"
+                                   VerticalAlignment="Center"
                                    Foreground="#8AA0B8"
-                                   Text="or drag a .md file into this window" />
+                                   Text="or drag a .md file here" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -223,20 +232,21 @@
                     BorderBrush="#7A2B4B6A"
                     BorderThickness="2"
                     IsHitTestVisible="False">
-                <Border Margin="18"
+                <Border x:Name="DropOverlayInnerBorder"
+                        Margin="18"
                         CornerRadius="22"
                         BorderBrush="#6685B5D9"
                         BorderThickness="2"
                         Background="#33091320">
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
-                        <TextBlock Text="Drop Markdown File"
+                        <TextBlock x:Name="DropOverlayTitleText" Text="Drop Markdown File"
                                    FontSize="30"
                                    FontWeight="SemiBold"
                                    Foreground="#F3F8FF"
                                    HorizontalAlignment="Center"
                                    Margin="0,0,0,6" />
-                        <TextBlock Text="Open a .md, .markdown, or .mdown file in this window"
+                        <TextBlock x:Name="DropOverlayMessageText" Text="Drop a .md, .markdown, or .mdown file to open it"
                                    FontSize="15"
                                    Foreground="#C4D6E7"
                                    HorizontalAlignment="Center" />
