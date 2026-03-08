@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-03-08
+
+### Added
+
+- Public release documentation polish for the first stable release, including README badges, cleaner install guidance, support links, and a clearer Windows trust note.
+
+### Changed
+
+- Promoted the project from the `0.9.0` pre-release framing to the stable `v1.0.0` release.
+- Finalized app and installer version metadata at `1.0.0`.
+- Reframed README packaging notes and installed guide wording around the actual stable release.
+
 ## [0.9.0] - 2026-03-08
 
 ### Added
@@ -11,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Global cascading window placement so additional Markdown bei Nacht windows also offset cleanly when launched again from the `.exe` or from Explorer while another app window is already open.
 - A bundled Windows app icon generated from the new `markdown_logo.png` artwork and embedded as a multi-size `.ico` asset for the app executable.
 - Installer branding that uses the same logo on the setup executable and installer UI entry points.
-- An in-app Help > User Guide entry plus F1 shortcut that opens the installed guide inside Markdown bei Nacht.
+- An in-app `Help > User Guide` entry plus `F1` shortcut that opens the installed guide inside Markdown bei Nacht.
 
 ### Changed
 
@@ -85,4 +97,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Installer compilation still depends on a local Inno Setup installation.
 - No signed release artifacts yet.
-
