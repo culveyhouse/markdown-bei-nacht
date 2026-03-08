@@ -25,7 +25,7 @@ Markdown bei Nacht is a lightweight Windows desktop app for previewing local Mar
 - Block remote images intentionally.
 - Persist a configurable base dark color in local app settings.
 - Open the installed user guide from `Help > User Guide` or `F1`.
-- Install with an optional desktop shortcut and Explorer `Open with` support.
+- Install with an optional desktop shortcut and Explorer `Open with` support for Markdown file types.
 
 ## Download And Install
 
@@ -157,7 +157,7 @@ Installer packaging is defined in `installer/MarkdownBeiNacht.iss`.
 Release packaging behavior:
 
 - per-user install under `%LocalAppData%\Programs`
-- visible in Explorer `Open with` for `.md`
+- visible in Explorer `Open with` for `.md`, `.markdown`, and `.mdown`
 - no forced takeover of the default `.md` association
 - optional desktop shortcut during install
 - installed user guide in the app folder, Start Menu, and in-app `Help` menu

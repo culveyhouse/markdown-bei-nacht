@@ -12,8 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Added plain-text `.txt` document support across file open, drag-and-drop, recent files, and local document links while rendering text in the normal reading style.
 - Updated app and installer version metadata to `1.1.0`.
-- Updated README and installed user guide wording to document the recent-files workflow.
+- Updated README and installed user guide wording to document recent files, `.txt` support, and current installer file-association scope.
 
 ## [1.0.0] - 2026-03-08
 

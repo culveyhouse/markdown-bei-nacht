@@ -9,7 +9,7 @@ Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt`
 - Remembers the last 8 Markdown and `.txt` files you opened in `File > Recent Files`.
 - Refreshes the preview when the file changes on disk.
 - Opens web links in your browser.
-- Opens Markdown links in a new Markdown bei Nacht window.
+- Opens Markdown and `.txt` links in a new Markdown bei Nacht window.
 
 ## Install On Windows 11
 
