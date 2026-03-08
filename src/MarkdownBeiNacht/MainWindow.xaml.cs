@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private const string ReadyStateTitle = "Ready to Preview Markdown";
     private const string ReadyStateMessage = "Open a Markdown file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with. If this window already has a file open, another Markdown file opens in a new window.";
     private const string WebView2DownloadUrl = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
+    private const double CascadedWindowOffset = 28d;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly ApplicationPaths _paths;
@@ -32,7 +33,9 @@ public partial class MainWindow : Window
     private readonly FileTextLoader _fileTextLoader;
     private readonly ThemePaletteBuilder _themePaletteBuilder;
     private readonly StartupOptions _startupOptions;
+    private readonly WindowPlacementCoordinator _windowPlacementCoordinator;
     private readonly AsyncDebouncer _watcherDebouncer = new(TimeSpan.FromMilliseconds(280));
+    private readonly AsyncDebouncer _windowPlacementDebouncer = new(TimeSpan.FromMilliseconds(140));
     private readonly SemaphoreSlim _renderLock = new(1, 1);
     private readonly TaskCompletionSource _webViewReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -57,8 +60,11 @@ public partial class MainWindow : Window
         _fileTextLoader = fileTextLoader;
         _themePaletteBuilder = themePaletteBuilder;
         _startupOptions = startupOptions;
+        _windowPlacementCoordinator = new WindowPlacementCoordinator(paths.WindowPlacementStateFilePath);
 
         InitializeComponent();
+        HookWindowPlacementTracking();
+        ApplyStartupWindowPlacement();
         ApplyShellTheme();
         ShowReadyState();
     }
@@ -83,14 +89,18 @@ public partial class MainWindow : Window
         if (_startupOptions.HasFile && string.IsNullOrWhiteSpace(_startupOptions.FilePath) is false)
         {
             await OpenFileAsync(_startupOptions.FilePath, _startupOptions.Anchor);
+            RememberCurrentWindowPlacement();
             return;
         }
 
         UpdateWindowTitle(null);
+        RememberCurrentWindowPlacement();
     }
 
     private void Window_OnClosed(object? sender, EventArgs e)
     {
+        RememberCurrentWindowPlacement();
+        _windowPlacementDebouncer.Dispose();
         _watcherDebouncer.Dispose();
         DisposeFileWatcher();
         _renderLock.Dispose();
@@ -253,12 +263,134 @@ public partial class MainWindow : Window
             : Path.GetDirectoryName(localPath) ?? AppContext.BaseDirectory;
         var startInfo = new ProcessStartInfo(executablePath)
         {
-            Arguments = QuoteArgument(argument),
+            Arguments = BuildLaunchArguments(argument),
             UseShellExecute = true,
             WorkingDirectory = workingDirectory,
         };
 
         Process.Start(startInfo);
+    }
+
+    private string BuildLaunchArguments(string fileArgument)
+    {
+        var placement = GetCascadedWindowPlacement();
+        return string.Join(
+            " ",
+            [
+                QuoteArgument(fileArgument),
+                FormattableString.Invariant($"--window-left={placement.Left:0.###}"),
+                FormattableString.Invariant($"--window-top={placement.Top:0.###}"),
+            ]);
+    }
+
+    private void HookWindowPlacementTracking()
+    {
+        LocationChanged += (_, _) => ScheduleWindowPlacementSave();
+        SizeChanged += (_, _) => ScheduleWindowPlacementSave();
+        StateChanged += (_, _) => ScheduleWindowPlacementSave();
+    }
+
+    private WindowPlacement GetCascadedWindowPlacement()
+    {
+        return WindowPlacementPlanner.Cascade(
+            CreateCurrentWindowPlacement(),
+            CascadedWindowOffset,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth,
+            SystemParameters.VirtualScreenHeight);
+    }
+
+    private void ApplyStartupWindowPlacement()
+    {
+        var windowWidth = GetEffectiveWindowDimension(Width, Width, MinWidth);
+        var windowHeight = GetEffectiveWindowDimension(Height, Height, MinHeight);
+        var placement = _windowPlacementCoordinator.ResolveStartupPlacement(
+            _startupOptions,
+            windowWidth,
+            windowHeight,
+            CascadedWindowOffset,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth,
+            SystemParameters.VirtualScreenHeight);
+        if (placement is null)
+        {
+            return;
+        }
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = placement.Left;
+        Top = placement.Top;
+    }
+
+    private void ScheduleWindowPlacementSave()
+    {
+        if (IsLoaded is false)
+        {
+            return;
+        }
+
+        _windowPlacementDebouncer.Schedule(async cancellationToken =>
+        {
+            await Dispatcher.InvokeAsync(
+                () =>
+                {
+                    if (cancellationToken.IsCancellationRequested is false)
+                    {
+                        RememberCurrentWindowPlacement();
+                    }
+                },
+                DispatcherPriority.Background,
+                cancellationToken);
+        });
+    }
+
+    private void RememberCurrentWindowPlacement()
+    {
+        if (IsLoaded is false)
+        {
+            return;
+        }
+
+        _windowPlacementCoordinator.RememberWindowPlacement(CreateCurrentWindowPlacement());
+    }
+
+    private WindowPlacement CreateCurrentWindowPlacement()
+    {
+        var bounds = GetCurrentWindowBounds();
+        var placement = new WindowPlacement(
+            bounds.Left,
+            bounds.Top,
+            GetEffectiveWindowDimension(bounds.Width, Width, MinWidth),
+            GetEffectiveWindowDimension(bounds.Height, Height, MinHeight));
+
+        return WindowPlacementPlanner.Clamp(
+            placement,
+            SystemParameters.VirtualScreenLeft,
+            SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth,
+            SystemParameters.VirtualScreenHeight);
+    }
+
+    private Rect GetCurrentWindowBounds()
+    {
+        if (RestoreBounds.IsEmpty is false)
+        {
+            return RestoreBounds;
+        }
+
+        return new Rect(
+            Left,
+            Top,
+            ActualWidth > 0 ? ActualWidth : Width,
+            ActualHeight > 0 ? ActualHeight : Height);
+    }
+
+    private static double GetEffectiveWindowDimension(double primaryValue, double fallbackValue, double minimumValue)
+    {
+        var candidate = double.IsNaN(primaryValue) || primaryValue <= 0 ? fallbackValue : primaryValue;
+        return Math.Max(candidate, minimumValue);
     }
 
     private static string QuoteArgument(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
@@ -318,9 +450,30 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void UserGuideMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        await OpenUserGuideAsync();
+    }
+
     private void ExitMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private async Task OpenUserGuideAsync()
+    {
+        if (File.Exists(_paths.UserGuideFilePath) is false)
+        {
+            System.Windows.MessageBox.Show(
+                this,
+                "Markdown bei Nacht could not find its installed user guide. Reinstall the app or check that README.md is present in the app folder.",
+                AppDisplayName,
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
+        await OpenSelectedMarkdownFileAsync(_paths.UserGuideFilePath);
     }
 
     private async Task OpenFilePickerAsync()
@@ -684,6 +837,14 @@ public partial class MainWindow : Window
         {
             e.Handled = true;
             ReloadMenuItem_OnClick(sender, new RoutedEventArgs());
+            return;
+        }
+
+        if (e.Key == Key.F1)
+        {
+            e.Handled = true;
+            _ = OpenUserGuideAsync();
+            return;
         }
     }
 
@@ -751,3 +912,4 @@ public partial class MainWindow : Window
 
     private sealed record LinkMessage(string Type, string Href);
 }
+

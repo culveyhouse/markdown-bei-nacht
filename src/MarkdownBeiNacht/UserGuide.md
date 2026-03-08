@@ -18,6 +18,8 @@ Markdown bei Nacht is a simple Windows app for reading local Markdown files in a
 4. If you want an icon on your desktop, check the desktop shortcut option during setup.
 5. Finish the setup.
 
+This release is not code signed yet, so Windows may show an `Unknown publisher` warning before setup starts.
+
 Some Windows 11 PCs already have Microsoft WebView2 installed. If your PC does not, setup may download and install it during setup.
 
 ## Open A Markdown File
@@ -30,6 +32,7 @@ You can open Markdown files in any of these ways:
 
 If the current window is empty, the file opens in that window.
 If the current window already has a Markdown file open, the app opens the new file in a new window.
+New windows open with a small cascade offset, so they do not land in the exact same spot. This also happens if you launch Markdown bei Nacht again while another window is already open.
 
 ## Use The Theme Setting
 
@@ -48,6 +51,8 @@ If the current window already has a Markdown file open, the app opens the new fi
 
 ## Find Help After Install
 
+You can open the guide from `Help > User Guide` or by pressing `F1` inside Markdown bei Nacht.
+
 The Start Menu includes:
 
 - `Markdown bei Nacht`
@@ -59,7 +64,7 @@ The installed app folder also includes this `README.md` file.
 
 You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in Windows 11.
 
-## Known Limits In v0.8.0
+## Known Limits In v1.0.0
 
 - The installer is not code signed yet.
 - Remote images are blocked on purpose.
