@@ -2,31 +2,33 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown files without opening a full editor or copying content into a browser.
 
-Quick start: if you just want to click the app directly, run `artifacts/publish/win-x64/MarkdownBeiNacht.exe`.
-If you want the one-click installer, use `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
+Quick start: if you want the current installer build, use `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
+If you want to run the published app directly, use `artifacts/publish/win-x64/MarkdownBeiNacht.exe`.
 
-It is a native `WPF` application built on `.NET 8` with an embedded `WebView2` renderer. The current build focuses on one job: open a Markdown file, render it cleanly, and refresh the preview when the file changes on disk.
+It is a native `WPF` application built on `.NET 8` with an embedded `WebView2` renderer. The current `v0.8.0` polish build is almost ready to ship and focuses on a tight Windows desktop experience: install cleanly, open one Markdown file per window, render it clearly, and refresh the preview when the file changes on disk.
 
 ## Status
 
-Current version: `v0.2.0`
+Current version: `v0.8.0`
 
-Release state: stable pre-1.0 milestone with working installer packaging and Explorer `Open with` integration.
+Release state: almost ready to ship, with installer packaging, optional desktop shortcut creation, Explorer `Open With` integration, and an installed end-user guide already in place.
 
-This repository already contains a usable first pass, but the project is still settling packaging polish and public-repo hygiene.
+This repository is intentionally stopping just short of a `1.0.0` stamp so the final release pass can stay small and focused on the last polish items.
 
 ## Features
 
 - Open a Markdown file from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
-- Show one file per window with multiple app instances allowed.
+- Keep one Markdown file per window.
+- Open a new window when you choose another Markdown file while the current window already has one open.
 - Auto-refresh the preview when the source file changes on disk.
 - Render GitHub-style Markdown structure with a midnight-dark visual theme.
 - Open local Markdown links in a new app window.
 - Open `http/https` links in the default browser.
 - Open non-Markdown local links with the Windows shell.
 - Resolve relative local assets against the current Markdown file.
-- Block remote images intentionally in v0.2.0.
+- Block remote images intentionally.
 - Persist a configurable base dark color in local app settings.
+- Install a user-facing `README.md` guide with the app.
 
 ## Architecture
 
@@ -71,12 +73,12 @@ CHANGELOG.md
 
 To build from source, you need:
 
-- Windows 10 or 11 x64
+- Windows 11 x64
 - `.NET 8 SDK`
 - WebView2 runtime for local app execution
 - Inno Setup only if you want to compile the installer `.exe`
 
-The published app is intended to be self-contained for end users, so a separate .NET runtime install is not required for running published builds.
+The published app is self-contained for end users, so a separate .NET runtime install is not required for running published builds.
 
 ## Build And Test
 
@@ -84,13 +86,14 @@ From the repository root:
 
 ```powershell
 PowerShell -ExecutionPolicy Bypass -File .\scripts\build.ps1
-dotnet test .\tests\MarkdownBeiNacht.Tests\MarkdownBeiNacht.Tests.csproj
+.\.dotnet8\dotnet.exe test .\tests\MarkdownBeiNacht.Tests\MarkdownBeiNacht.Tests.csproj
 PowerShell -ExecutionPolicy Bypass -File .\scripts\publish.ps1 -Configuration Release -Runtime win-x64
 ```
 
 Notes:
 
 - In this workspace, `scripts/build.ps1` is the reliable build path.
+- The repo-local `.dotnet8\dotnet.exe` test command is the reliable way to run tests here.
 - Plain `dotnet build MarkdownBeiNacht.sln` can be flaky under default parallelism in this environment.
 - If needed, the direct equivalent is `dotnet build MarkdownBeiNacht.sln -m:1`.
 
@@ -119,6 +122,8 @@ Current packaging goals:
 - per-user install under `%LocalAppData%\Programs`
 - visible in Explorer `Open with` for `.md`
 - no forced takeover of the default `.md` association
+- optional desktop shortcut during install
+- installed user guide in the app folder and Start Menu
 - WebView2 bootstrap when the runtime is missing
 
 Build the installer from the repository root with:
@@ -129,11 +134,11 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1 -Configur
 
 The resulting setup executable is written to `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 
-## Known Limitations In v0.2.0
+## Known Limitations In v0.8.0
 
 - Remote images are blocked by design.
-- The installer `.exe` is not built unless Inno Setup is installed locally.
-- The current release is not signed.
+- The installer is not code signed yet.
+- The installer may need internet access if WebView2 is missing on the target machine.
 - ARM64 is not targeted yet.
 
 ## Changelog
@@ -145,4 +150,3 @@ The changelog follows a Keep a Changelog style format and uses semantic versioni
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-

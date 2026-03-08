@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-03-08
+
+### Added
+
+- Optional desktop shortcut creation during installer setup.
+- A user-facing installed `README.md` plus a Start Menu shortcut that opens the guide inside Markdown bei Nacht.
+- Explicit one-file-per-window behavior for `File > Open` and drag-and-drop when a window already has a file open.
+
+### Changed
+
+- Retargeted the project release framing to `0.8.0` as an almost-ready-to-ship polish build awaiting final release cleanup.
+- Moved WebView2 runtime data out of the publish/install directory and into local app data.
+- Cleaned publish output so release builds do not carry forward stray `*.WebView2` folders or `.pdb` files.
+- Kept the installer unsigned and bootstrapper-based for a lean Windows 11 x64 near-release flow.
+
+### Fixed
+
+- Hardened theme settings persistence by saving settings atomically and surfacing save failures to the user.
+- Added regression coverage for settings round-trip behavior and the current-window reuse policy.
+
 ## [0.2.0] - 2026-03-07
 
 ### Added

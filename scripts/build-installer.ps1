@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
@@ -40,8 +40,10 @@ if ([string]::IsNullOrWhiteSpace($IsccPath) -or -not (Test-Path $IsccPath)) {
 Push-Location (Join-Path $repoRoot "installer")
 try {
     & $IsccPath "MarkdownBeiNacht.iss"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
+    }
 }
 finally {
     Pop-Location
 }
-

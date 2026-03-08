@@ -62,6 +62,28 @@ public sealed class CoreServicesTests
     }
 
     [Fact]
+    public async Task AppSettingsStore_SaveAsync_OverwritesExistingSettingsAndCleansTempFile()
+    {
+        var tempDirectory = CreateTempDirectory();
+        try
+        {
+            var settingsPath = Path.Combine(tempDirectory, "settings.json");
+            var store = new AppSettingsStore();
+
+            await store.SaveAsync(settingsPath, new AppSettings("#112233"));
+            await store.SaveAsync(settingsPath, new AppSettings("#445566"));
+            var loaded = await store.LoadAsync(settingsPath);
+
+            Assert.Equal("#445566", loaded.BaseColor);
+            Assert.False(File.Exists(settingsPath + ".tmp"));
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, true);
+        }
+    }
+
+    [Fact]
     public async Task FileTextLoader_ReturnsInvalidEncodingForMalformedUtf8()
     {
         var tempDirectory = CreateTempDirectory();
@@ -126,6 +148,14 @@ public sealed class CoreServicesTests
         Assert.Equal("hello", text);
     }
 
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public void WindowOpenPolicy_ReusesCurrentWindowOnlyUntilDocumentLoads(bool hasLoadedDocument, bool expected)
+    {
+        Assert.Equal(expected, WindowOpenPolicy.ShouldReuseCurrentWindow(hasLoadedDocument));
+    }
+
     private static string CreateTempDirectory()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
@@ -133,4 +163,3 @@ public sealed class CoreServicesTests
         return path;
     }
 }
-
