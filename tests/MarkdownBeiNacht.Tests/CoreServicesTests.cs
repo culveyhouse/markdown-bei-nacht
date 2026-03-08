@@ -72,23 +72,33 @@ public sealed class CoreServicesTests
     }
 
     [Fact]
-    public void MarkdownLinkResolver_ResolvesRelativeMarkdownTarget()
+    public void MarkdownLinkResolver_ResolvesRelativeDocumentTarget()
     {
         var currentDirectory = CreateTempDirectory();
         try
         {
             var currentFile = Path.Combine(currentDirectory, "current.md");
 
-            var result = MarkdownLinkResolver.Resolve("guides/next.md#deep-link", currentFile);
+            var result = MarkdownLinkResolver.Resolve("guides/next.txt#deep-link", currentFile);
 
-            Assert.Equal(LinkTargetKind.LocalMarkdown, result.Kind);
-            Assert.Equal(Path.Combine(currentDirectory, "guides", "next.md"), result.LocalPath);
+            Assert.Equal(LinkTargetKind.LocalDocument, result.Kind);
+            Assert.Equal(Path.Combine(currentDirectory, "guides", "next.txt"), result.LocalPath);
             Assert.Equal("deep-link", result.Anchor);
         }
         finally
         {
             Directory.Delete(currentDirectory, true);
         }
+    }
+
+    [Fact]
+    public void MarkdownPathUtilities_RecognizesSupportedDocumentTypes()
+    {
+        Assert.True(MarkdownPathUtilities.IsMarkdownPath("notes.md"));
+        Assert.True(MarkdownPathUtilities.IsPlainTextPath("notes.txt"));
+        Assert.True(MarkdownPathUtilities.IsSupportedDocumentPath("notes.markdown#intro"));
+        Assert.True(MarkdownPathUtilities.IsSupportedDocumentPath("notes.txt?x=1"));
+        Assert.False(MarkdownPathUtilities.IsSupportedDocumentPath("notes.png"));
     }
 
     [Fact]
@@ -213,6 +223,7 @@ public sealed class CoreServicesTests
 
         Assert.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), paths.AppDataDirectory);
         Assert.Equal(Path.Combine(paths.AppDataDirectory, "settings.json"), paths.SettingsFilePath);
+        Assert.Equal(Path.Combine(paths.AppDataDirectory, "recent-files.json"), paths.RecentFilesStateFilePath);
         Assert.Equal(Path.Combine(paths.AppDataDirectory, "window-placement.json"), paths.WindowPlacementStateFilePath);
         Assert.Equal(Path.Combine(paths.AppDataDirectory, "WebView2"), paths.WebViewUserDataDirectory);
         Assert.Equal(Path.Combine(AppContext.BaseDirectory, "Assets"), paths.AssetsDirectory);
@@ -276,6 +287,102 @@ public sealed class CoreServicesTests
                 new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
             Assert.Equal(result, persisted);
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, true);
+        }
+    }
+
+    [Fact]
+    public async Task RecentFilesStore_RememberAsync_DeduplicatesMovesToTopAndTrims()
+    {
+        var tempDirectory = CreateTempDirectory();
+        try
+        {
+            var statePath = Path.Combine(tempDirectory, "recent-files.json");
+            var store = new RecentFilesStore();
+
+            var expectedPaths = Enumerable.Range(1, RecentFilesState.MaxEntries + 1)
+                .Select(index => Path.Combine(tempDirectory, $"note-{index}.md"))
+                .ToArray();
+
+            foreach (var path in expectedPaths)
+            {
+                await File.WriteAllTextAsync(path, "# Note");
+                await store.RememberAsync(statePath, path);
+            }
+
+            var updated = await store.RememberAsync(statePath, expectedPaths[2]);
+
+            Assert.Equal(RecentFilesState.MaxEntries, updated.Files.Length);
+            Assert.Equal(expectedPaths[2], updated.Files[0]);
+            Assert.Equal(1, updated.Files.Count(path => string.Equals(path, expectedPaths[2], StringComparison.OrdinalIgnoreCase)));
+            Assert.DoesNotContain(expectedPaths[0], updated.Files);
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, true);
+        }
+    }
+
+    [Fact]
+    public async Task RecentFilesStore_AcceptsSupportedDocumentsAndClearsState()
+    {
+        var tempDirectory = CreateTempDirectory();
+        try
+        {
+            var statePath = Path.Combine(tempDirectory, "recent-files.json");
+            var store = new RecentFilesStore();
+            var markdownPath = Path.Combine(tempDirectory, "guide.md");
+            var textPath = Path.Combine(tempDirectory, "notes.txt");
+            var imagePath = Path.Combine(tempDirectory, "skip.png");
+
+            await File.WriteAllTextAsync(markdownPath, "# Guide");
+            await File.WriteAllTextAsync(textPath, "plain text");
+            await File.WriteAllBytesAsync(imagePath, [1, 2, 3]);
+
+            await store.RememberAsync(statePath, markdownPath);
+            var updated = await store.RememberAsync(statePath, textPath);
+            var ignored = await store.RememberAsync(statePath, imagePath);
+
+            Assert.Equal(2, updated.Files.Length);
+            Assert.Equal(textPath, updated.Files[0]);
+            Assert.Contains(markdownPath, updated.Files);
+            Assert.Equal(updated.Files, ignored.Files);
+
+            await store.ClearAsync(statePath);
+            var cleared = await store.LoadAsync(statePath);
+
+            Assert.Empty(cleared.Files);
+            Assert.False(File.Exists(statePath + ".tmp"));
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, true);
+        }
+    }
+
+    [Fact]
+    public async Task RecentFilesStore_SaveAndLoad_RoundTripsNormalizedState()
+    {
+        var tempDirectory = CreateTempDirectory();
+        try
+        {
+            var statePath = Path.Combine(tempDirectory, "recent-files.json");
+            var markdownPath = Path.Combine(tempDirectory, ".", "docs", "guide.md");
+            var textPath = Path.Combine(tempDirectory, ".", "docs", "notes.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(markdownPath)!);
+            await File.WriteAllTextAsync(markdownPath, "# Guide");
+            await File.WriteAllTextAsync(textPath, "hello");
+
+            var store = new RecentFilesStore();
+            await store.SaveAsync(statePath, new RecentFilesState([markdownPath, markdownPath, textPath, Path.Combine(tempDirectory, "skip.png")]));
+            var loaded = await store.LoadAsync(statePath);
+
+            Assert.Equal(2, loaded.Files.Length);
+            Assert.Equal(Path.GetFullPath(markdownPath), loaded.Files[0]);
+            Assert.Equal(Path.GetFullPath(textPath), loaded.Files[1]);
         }
         finally
         {

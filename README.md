@@ -1,30 +1,31 @@
 # Markdown bei Nacht
 
-[![Version](https://img.shields.io/badge/version-v1.0.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
+[![Version](https://img.shields.io/badge/version-v1.1.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Release State](https://img.shields.io/badge/release-stable-16a34a)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20x64-0ea5e9)](https://github.com/culveyhouse/markdown-bei-nacht)
 [![.NET](https://img.shields.io/badge/.NET-8-512bd4)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 [![License](https://img.shields.io/badge/license-MIT-f59e0b)](LICENSE)
 
-Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown files in a near-GitHub dark style without opening a full editor or copying content into a browser.
+Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown and plain text files in a near-GitHub dark style without opening a full editor or copying content into a browser.
 
-`v1.0.0` is the first stable public release. The app stays intentionally lean: one Markdown file per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
+`v1.1.0` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
 
 ## Highlights
 
-- Open local Markdown files from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
-- Keep one Markdown file per window.
+- Open local Markdown and `.txt` files from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
+- Reopen the last 8 viewed Markdown or `.txt` files from `File > Recent Files`.
+- Keep one document per window.
 - Open additional windows with a small cascade offset so they do not stack exactly on top of each other.
 - Auto-refresh the preview when the source file changes on disk.
 - Render GitHub-style Markdown structure with a midnight-dark visual theme.
-- Open local Markdown links in a new app window.
+- Open local Markdown and `.txt` links in a new app window.
 - Open `http/https` links in the default browser.
-- Open non-Markdown local links with the Windows shell.
+- Open other local file links with the Windows shell.
 - Resolve relative local assets against the current Markdown file.
 - Block remote images intentionally.
 - Persist a configurable base dark color in local app settings.
 - Open the installed user guide from `Help > User Guide` or `F1`.
-- Install with an optional desktop shortcut and Explorer `Open with` support.
+- Install with an optional desktop shortcut and Explorer `Open with` support for Markdown file types.
 
 ## Download And Install
 
@@ -77,7 +78,7 @@ The app is split into a few clear layers:
 - `installer`: Inno Setup installer script and runtime bootstrapper assets.
 - `scripts`: helper scripts for build, publish, and installer packaging.
 
-At runtime, the native shell reads a Markdown file from disk, converts it to sanitized HTML with `Markdig` plus `HtmlSanitizer`, and injects the result into a local `WebView2` HTML shell for rendering.
+At runtime, the native shell reads a local document from disk, renders Markdown through `Markdig` plus `HtmlSanitizer` or plain text through a simple paragraph renderer, and injects the result into a local `WebView2` HTML shell for rendering.
 
 ## Stack
 
@@ -156,7 +157,7 @@ Installer packaging is defined in `installer/MarkdownBeiNacht.iss`.
 Release packaging behavior:
 
 - per-user install under `%LocalAppData%\Programs`
-- visible in Explorer `Open with` for `.md`
+- visible in Explorer `Open with` for `.md`, `.markdown`, and `.mdown`
 - no forced takeover of the default `.md` association
 - optional desktop shortcut during install
 - installed user guide in the app folder, Start Menu, and in-app `Help` menu
@@ -171,9 +172,10 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1 -Configur
 
 The resulting setup executable is written to `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 
-## Known Limitations In v1.0.0
+## Known Limitations In v1.1.0
 
 - Remote images are blocked by design.
 - The installer is not code signed yet.
 - The installer may need internet access if WebView2 is missing on the target machine.
 - ARM64 is not targeted yet.
+

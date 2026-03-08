@@ -31,12 +31,12 @@ public static class MarkdownLinkResolver
             var anchor = ExtractAnchor(resolvedUri.Fragment)
                 ?? ExtractAnchor(trimmed)
                 ?? ExtractAnchor(resolvedUri.LocalPath);
-            var isMarkdownTarget = MarkdownPathUtilities.IsMarkdownPath(localPath)
-                || MarkdownPathUtilities.IsMarkdownPath(trimmed)
-                || MarkdownPathUtilities.IsMarkdownPath(resolvedUri.AbsolutePath);
+            var isSupportedDocumentTarget = MarkdownPathUtilities.IsSupportedDocumentPath(localPath)
+                || MarkdownPathUtilities.IsSupportedDocumentPath(trimmed)
+                || MarkdownPathUtilities.IsSupportedDocumentPath(resolvedUri.AbsolutePath);
 
             return new ResolvedLinkTarget(
-                isMarkdownTarget ? LinkTargetKind.LocalMarkdown : LinkTargetKind.LocalFile,
+                isSupportedDocumentTarget ? LinkTargetKind.LocalDocument : LinkTargetKind.LocalFile,
                 trimmed,
                 localPath,
                 resolvedUri,
@@ -84,4 +84,3 @@ public static class MarkdownLinkResolver
         return false;
     }
 }
-

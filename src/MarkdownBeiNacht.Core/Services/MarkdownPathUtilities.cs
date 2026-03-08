@@ -9,6 +9,17 @@ public static class MarkdownPathUtilities
         ".mdown",
     ];
 
+    private static readonly HashSet<string> PlainTextExtensions =
+    [
+        ".txt",
+    ];
+
+    private static readonly HashSet<string> SupportedDocumentExtensions =
+    [
+        ..MarkdownExtensions,
+        ..PlainTextExtensions,
+    ];
+
     public static Uri? CreateBaseUri(string? filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -19,16 +30,14 @@ public static class MarkdownPathUtilities
         return new Uri(NormalizePath(filePath));
     }
 
-    public static bool IsMarkdownPath(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return false;
-        }
+    public static bool IsMarkdownPath(string? path) =>
+        HasSupportedExtension(path, MarkdownExtensions);
 
-        var withoutFragment = path.Split('#', '?')[0];
-        return MarkdownExtensions.Contains(Path.GetExtension(withoutFragment).ToLowerInvariant());
-    }
+    public static bool IsPlainTextPath(string? path) =>
+        HasSupportedExtension(path, PlainTextExtensions);
+
+    public static bool IsSupportedDocumentPath(string? path) =>
+        HasSupportedExtension(path, SupportedDocumentExtensions);
 
     public static string NormalizePath(string path)
     {
@@ -42,6 +51,16 @@ public static class MarkdownPathUtilities
             return path.Trim();
         }
     }
-}
 
+    private static bool HasSupportedExtension(string? path, HashSet<string> extensions)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var withoutFragment = path.Split('#', '?')[0];
+        return extensions.Contains(Path.GetExtension(withoutFragment).ToLowerInvariant());
+    }
+}
 

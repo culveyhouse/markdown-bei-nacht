@@ -12,6 +12,7 @@ public sealed class ApplicationPaths
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             AppFolderName);
         SettingsFilePath = Path.Combine(AppDataDirectory, "settings.json");
+        RecentFilesStateFilePath = Path.Combine(AppDataDirectory, "recent-files.json");
         WindowPlacementStateFilePath = Path.Combine(AppDataDirectory, "window-placement.json");
         WebViewUserDataDirectory = Path.Combine(AppDataDirectory, "WebView2");
         AssetsDirectory = Path.Combine(AppContext.BaseDirectory, "Assets");
@@ -21,6 +22,8 @@ public sealed class ApplicationPaths
     public string AppDataDirectory { get; }
 
     public string SettingsFilePath { get; }
+
+    public string RecentFilesStateFilePath { get; }
 
     public string WindowPlacementStateFilePath { get; }
 

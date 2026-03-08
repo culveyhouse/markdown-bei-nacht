@@ -4,7 +4,7 @@ public enum LinkTargetKind
 {
     Anchor,
     External,
-    LocalMarkdown,
+    LocalDocument,
     LocalFile,
     Unsupported,
 }
@@ -15,4 +15,3 @@ public sealed record ResolvedLinkTarget(
     string? LocalPath = null,
     Uri? Uri = null,
     string? Anchor = null);
-
