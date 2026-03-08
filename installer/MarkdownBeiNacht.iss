@@ -1,6 +1,6 @@
 #define AppName "Markdown bei Nacht"
 #define AppExeName "MarkdownBeiNacht.exe"
-#define AppVersion "0.8.0"
+#define AppVersion "0.9.0"
 #define AppPublisher "Markdown bei Nacht"
 #define PublishDir "..\artifacts\publish\win-x64"
 #define BootstrapperSource "dependencies\MicrosoftEdgeWebView2Setup.exe"

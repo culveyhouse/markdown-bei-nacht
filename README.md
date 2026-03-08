@@ -5,11 +5,11 @@ Markdown bei Nacht is a lightweight Windows desktop app for previewing local Mar
 Quick start: if you want the current installer build, use `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 If you want to run the published app directly, use `artifacts/publish/win-x64/MarkdownBeiNacht.exe`.
 
-It is a native `WPF` application built on `.NET 8` with an embedded `WebView2` renderer. The current `v0.8.0` polish build is almost ready to ship and focuses on a tight Windows desktop experience: install cleanly, open one Markdown file per window, render it clearly, and refresh the preview when the file changes on disk.
+It is a native `WPF` application built on `.NET 8` with an embedded `WebView2` renderer. The current `v0.9.0` polish build is almost ready to ship and focuses on a tight Windows desktop experience: install cleanly, open one Markdown file per window, render it clearly, refresh the preview when the file changes on disk, and now present a fully branded Windows app surface.
 
 ## Status
 
-Current version: `v0.8.0`
+Current version: `v0.9.0`
 
 Release state: almost ready to ship, with installer packaging, optional desktop shortcut creation, Explorer `Open With` integration, and an installed end-user guide already in place.
 
@@ -134,7 +134,7 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1 -Configur
 
 The resulting setup executable is written to `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 
-## Known Limitations In v0.8.0
+## Known Limitations In v0.9.0
 
 - Remote images are blocked by design.
 - The installer is not code signed yet.

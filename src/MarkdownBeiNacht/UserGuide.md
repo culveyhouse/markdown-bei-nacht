@@ -60,7 +60,7 @@ The installed app folder also includes this `README.md` file.
 
 You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in Windows 11.
 
-## Known Limits In v0.8.0
+## Known Limits In v0.9.0
 
 - The installer is not code signed yet.
 - Remote images are blocked on purpose.

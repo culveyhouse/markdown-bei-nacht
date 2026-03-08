@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-03-08
+
+### Added
+
+- Global cascading window placement so additional Markdown bei Nacht windows also offset cleanly when launched again from the `.exe` or from Explorer while another app window is already open.
+- A bundled Windows app icon generated from the new `markdown_logo.png` artwork and embedded as a multi-size `.ico` asset for the app executable.
+- Installer branding that uses the same logo on the setup executable and installer UI entry points.
+
+### Changed
+
+- Updated app and installer version metadata to `0.9.0`.
+- Expanded the documented `0.8.0` near-release polish work into a more complete `0.9.0` pre-release with branded Windows surfaces and broader multi-window polish.
+- Updated README and installed user-guide wording so the documented behavior matches the latest cascade and branding work.
+
+### Fixed
+
+- Kept separately launched app windows from stacking directly on top of each other by persisting shared window placement state across processes.
+- Verified icon consistency across the installer, installed shortcuts, taskbar/title bar surfaces, and the running desktop app.
+
 ## [0.8.0] - 2026-03-08
 
 ### Added
