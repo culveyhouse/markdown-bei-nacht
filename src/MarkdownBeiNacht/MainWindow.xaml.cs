@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private const string ReadyStateTitle = "Ready to Preview Markdown";
     private const string ReadyStateMessage = "Open a Markdown file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with. If this window already has a file open, another Markdown file opens in a new window.";
     private const string WebView2DownloadUrl = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
+    private const double CascadedWindowOffset = 28d;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly ApplicationPaths _paths;
@@ -59,6 +60,7 @@ public partial class MainWindow : Window
         _startupOptions = startupOptions;
 
         InitializeComponent();
+        ApplyStartupWindowPlacement();
         ApplyShellTheme();
         ShowReadyState();
     }
@@ -253,12 +255,71 @@ public partial class MainWindow : Window
             : Path.GetDirectoryName(localPath) ?? AppContext.BaseDirectory;
         var startInfo = new ProcessStartInfo(executablePath)
         {
-            Arguments = QuoteArgument(argument),
+            Arguments = BuildLaunchArguments(argument),
             UseShellExecute = true,
             WorkingDirectory = workingDirectory,
         };
 
         Process.Start(startInfo);
+    }
+
+    private string BuildLaunchArguments(string fileArgument)
+    {
+        var placement = GetCascadedWindowPlacement();
+        return string.Join(
+            " ",
+            [
+                QuoteArgument(fileArgument),
+                FormattableString.Invariant($"--window-left={placement.X:0.###}"),
+                FormattableString.Invariant($"--window-top={placement.Y:0.###}"),
+            ]);
+    }
+
+    private System.Windows.Point GetCascadedWindowPlacement()
+    {
+        var bounds = WindowState == WindowState.Normal && RestoreBounds.IsEmpty is false
+            ? RestoreBounds
+            : new Rect(Left, Top, ActualWidth > 0 ? ActualWidth : Width, ActualHeight > 0 ? ActualHeight : Height);
+        var windowWidth = GetEffectiveWindowDimension(bounds.Width, Width, MinWidth);
+        var windowHeight = GetEffectiveWindowDimension(bounds.Height, Height, MinHeight);
+        var targetLeft = bounds.Left + CascadedWindowOffset;
+        var targetTop = bounds.Top + CascadedWindowOffset;
+
+        return ClampToVirtualScreen(targetLeft, targetTop, windowWidth, windowHeight);
+    }
+
+    private void ApplyStartupWindowPlacement()
+    {
+        if (_startupOptions.HasWindowPlacement is false || _startupOptions.WindowLeft is null || _startupOptions.WindowTop is null)
+        {
+            return;
+        }
+
+        var windowWidth = GetEffectiveWindowDimension(Width, Width, MinWidth);
+        var windowHeight = GetEffectiveWindowDimension(Height, Height, MinHeight);
+        var placement = ClampToVirtualScreen(_startupOptions.WindowLeft.Value, _startupOptions.WindowTop.Value, windowWidth, windowHeight);
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = placement.X;
+        Top = placement.Y;
+    }
+
+    private static System.Windows.Point ClampToVirtualScreen(double left, double top, double windowWidth, double windowHeight)
+    {
+        var virtualLeft = SystemParameters.VirtualScreenLeft;
+        var virtualTop = SystemParameters.VirtualScreenTop;
+        var maxLeft = Math.Max(virtualLeft, virtualLeft + SystemParameters.VirtualScreenWidth - windowWidth);
+        var maxTop = Math.Max(virtualTop, virtualTop + SystemParameters.VirtualScreenHeight - windowHeight);
+
+        return new System.Windows.Point(
+            Math.Clamp(left, virtualLeft, maxLeft),
+            Math.Clamp(top, virtualTop, maxTop));
+    }
+
+    private static double GetEffectiveWindowDimension(double primaryValue, double fallbackValue, double minimumValue)
+    {
+        var candidate = double.IsNaN(primaryValue) || primaryValue <= 0 ? fallbackValue : primaryValue;
+        return Math.Max(candidate, minimumValue);
     }
 
     private static string QuoteArgument(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
@@ -751,3 +812,4 @@ public partial class MainWindow : Window
 
     private sealed record LinkMessage(string Type, string Href);
 }
+

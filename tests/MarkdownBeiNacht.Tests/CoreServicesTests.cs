@@ -19,6 +19,24 @@ public sealed class CoreServicesTests
 
         Assert.Equal(Path.GetFullPath(tempPath), result.FilePath);
         Assert.Equal("intro", result.Anchor);
+        Assert.False(result.HasWindowPlacement);
+    }
+
+    [Fact]
+    public void CommandLineParser_ParsesWindowPlacementArguments()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), "viewer.md");
+
+        var result = CommandLineParser.Parse([
+            tempPath,
+            "--window-left=412.5",
+            "--window-top=188.25",
+        ]);
+
+        Assert.Equal(Path.GetFullPath(tempPath), result.FilePath);
+        Assert.Equal(412.5, result.WindowLeft);
+        Assert.Equal(188.25, result.WindowTop);
+        Assert.True(result.HasWindowPlacement);
     }
 
     [Fact]

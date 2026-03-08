@@ -30,6 +30,7 @@ You can open Markdown files in any of these ways:
 
 If the current window is empty, the file opens in that window.
 If the current window already has a Markdown file open, the app opens the new file in a new window.
+New windows open with a small cascade offset, so they do not land in the exact same spot.
 
 ## Use The Theme Setting
 
