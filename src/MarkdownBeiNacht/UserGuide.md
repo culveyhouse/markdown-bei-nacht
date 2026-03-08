@@ -6,6 +6,7 @@ Markdown bei Nacht is a simple Windows app for reading local Markdown files in a
 
 - Opens one Markdown file per window.
 - Lets you open files from the app, from Explorer, or by dragging them in.
+- Remembers the last 8 Markdown files you opened in `File > Recent Files`.
 - Refreshes the preview when the file changes on disk.
 - Opens web links in your browser.
 - Opens Markdown links in a new Markdown bei Nacht window.
@@ -32,6 +33,7 @@ You can open Markdown files in any of these ways:
 
 If the current window is empty, the file opens in that window.
 If the current window already has a Markdown file open, the app opens the new file in a new window.
+You can also reopen one of the last 8 Markdown files from File > Recent Files.
 New windows open with a small cascade offset, so they do not land in the exact same spot. This also happens if you launch Markdown bei Nacht again while another window is already open.
 
 ## Use The Theme Setting
@@ -64,7 +66,7 @@ The installed app folder also includes this `README.md` file.
 
 You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in Windows 11.
 
-## Known Limits In v1.0.0
+## Known Limits In v1.1.0
 
 - The installer is not code signed yet.
 - Remote images are blocked on purpose.

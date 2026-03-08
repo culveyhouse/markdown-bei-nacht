@@ -127,6 +127,73 @@
                     </Setter>
                 </Style>
 
+                <Style x:Key="NestedSubmenuMenuItemStyle" TargetType="MenuItem">
+                    <Setter Property="Foreground" Value="{DynamicResource MenuPopupForegroundBrush}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="12,8" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="MenuItem">
+                                <Grid>
+                                    <Border Background="{DynamicResource MenuPopupBackgroundBrush}"
+                                            BorderBrush="{DynamicResource MenuPopupBorderBrush}"
+                                            BorderThickness="0">
+                                        <Grid MinWidth="180">
+                                            <Border x:Name="ItemBackground"
+                                                    Background="Transparent"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ContentPresenter Grid.Column="0"
+                                                                      ContentSource="Header"
+                                                                      RecognizesAccessKey="True"
+                                                                      VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="&#x203A;"
+                                                               Margin="24,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{TemplateBinding Foreground}" />
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                    <Popup x:Name="PART_Popup"
+                                           AllowsTransparency="True"
+                                           Focusable="False"
+                                           IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                           Placement="Right"
+                                           PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                           PopupAnimation="Fade">
+                                        <Border Background="{DynamicResource MenuPopupBackgroundBrush}"
+                                                BorderBrush="{DynamicResource MenuPopupBorderBrush}"
+                                                BorderThickness="1"
+                                                Padding="4"
+                                                SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True"
+                                                        KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="ItemBackground" Property="Background" Value="{DynamicResource MenuPopupHighlightBrush}" />
+                                        <Setter Property="Foreground" Value="#FFFFFF" />
+                                    </Trigger>
+                                    <Trigger Property="IsSubmenuOpen" Value="True">
+                                        <Setter TargetName="ItemBackground" Property="Background" Value="{DynamicResource MenuPopupHighlightBrush}" />
+                                        <Setter Property="Foreground" Value="#FFFFFF" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="{DynamicResource MenuPopupDisabledBrush}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
                 <Style TargetType="ContextMenu">
                     <Setter Property="Background" Value="{DynamicResource MenuPopupBackgroundBrush}" />
                     <Setter Property="Foreground" Value="{DynamicResource MenuPopupForegroundBrush}" />
@@ -152,6 +219,10 @@
                           Style="{StaticResource SubmenuMenuItemStyle}"
                           Click="OpenMenuItem_OnClick"
                           InputGestureText="Ctrl+O" />
+                <MenuItem x:Name="RecentFilesMenuItem"
+                          Header="_Recent Files"
+                          Style="{StaticResource NestedSubmenuMenuItemStyle}"
+                          SubmenuOpened="RecentFilesMenuItem_OnSubmenuOpened" />
                 <Separator />
                 <MenuItem Header="E_xit"
                           Style="{StaticResource SubmenuMenuItemStyle}"
@@ -263,4 +334,3 @@
         </Grid>
     </DockPanel>
 </Window>
-

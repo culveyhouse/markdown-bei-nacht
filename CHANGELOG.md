@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-03-08
+
+### Added
+
+- A new `File > Recent Files` menu that remembers the last 8 Markdown files opened and lets you reopen them quickly.
+
+### Changed
+
+- Updated app and installer version metadata to `1.1.0`.
+- Updated README and installed user guide wording to document the recent-files workflow.
+
 ## [1.0.0] - 2026-03-08
 
 ### Added

@@ -1,6 +1,6 @@
 # Markdown bei Nacht
 
-[![Version](https://img.shields.io/badge/version-v1.0.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
+[![Version](https://img.shields.io/badge/version-v1.1.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Release State](https://img.shields.io/badge/release-stable-16a34a)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20x64-0ea5e9)](https://github.com/culveyhouse/markdown-bei-nacht)
 [![.NET](https://img.shields.io/badge/.NET-8-512bd4)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
@@ -8,11 +8,12 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown files in a near-GitHub dark style without opening a full editor or copying content into a browser.
 
-`v1.0.0` is the first stable public release. The app stays intentionally lean: one Markdown file per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
+`v1.1.0` is the current stable public release. The app stays intentionally lean: one Markdown file per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
 
 ## Highlights
 
 - Open local Markdown files from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
+- Reopen the last 8 viewed Markdown files from `File > Recent Files`.
 - Keep one Markdown file per window.
 - Open additional windows with a small cascade offset so they do not stack exactly on top of each other.
 - Auto-refresh the preview when the source file changes on disk.
@@ -171,7 +172,7 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1 -Configur
 
 The resulting setup executable is written to `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 
-## Known Limitations In v1.0.0
+## Known Limitations In v1.1.0
 
 - Remote images are blocked by design.
 - The installer is not code signed yet.

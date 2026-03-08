@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
 
     private readonly ApplicationPaths _paths;
     private readonly AppSettingsStore _settingsStore;
+    private readonly RecentFilesStore _recentFilesStore;
     private readonly MarkdownRenderer _renderer;
     private readonly FileTextLoader _fileTextLoader;
     private readonly ThemePaletteBuilder _themePaletteBuilder;
@@ -40,6 +42,7 @@ public partial class MainWindow : Window
     private readonly TaskCompletionSource _webViewReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private AppSettings _settings = AppSettings.Default;
+    private RecentFilesState _recentFiles = RecentFilesState.Empty;
     private FileSystemWatcher? _fileWatcher;
     private string? _currentFilePath;
     private string? _pendingAnchor;
@@ -49,6 +52,7 @@ public partial class MainWindow : Window
     public MainWindow(
         ApplicationPaths paths,
         AppSettingsStore settingsStore,
+        RecentFilesStore recentFilesStore,
         MarkdownRenderer renderer,
         FileTextLoader fileTextLoader,
         ThemePaletteBuilder themePaletteBuilder,
@@ -56,6 +60,7 @@ public partial class MainWindow : Window
     {
         _paths = paths;
         _settingsStore = settingsStore;
+        _recentFilesStore = recentFilesStore;
         _renderer = renderer;
         _fileTextLoader = fileTextLoader;
         _themePaletteBuilder = themePaletteBuilder;
@@ -66,6 +71,7 @@ public partial class MainWindow : Window
         HookWindowPlacementTracking();
         ApplyStartupWindowPlacement();
         ApplyShellTheme();
+        RefreshRecentFilesMenu();
         ShowReadyState();
     }
 
@@ -78,7 +84,9 @@ public partial class MainWindow : Window
 
         _isInitialized = true;
         _settings = await _settingsStore.LoadAsync(_paths.SettingsFilePath);
+        _recentFiles = await _recentFilesStore.LoadAsync(_paths.RecentFilesStateFilePath);
         ApplyShellTheme();
+        RefreshRecentFilesMenu();
 
         if (await InitializeWebViewAsync() is false)
         {
@@ -405,6 +413,32 @@ public partial class MainWindow : Window
         await OpenFilePickerAsync();
     }
 
+    private void RecentFilesMenuItem_OnSubmenuOpened(object sender, RoutedEventArgs e)
+    {
+        RefreshRecentFilesMenu();
+    }
+
+    private async void RecentFileMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: string filePath })
+        {
+            return;
+        }
+
+        if (File.Exists(filePath) is false)
+        {
+            await RemoveMissingRecentFileAsync(filePath);
+            return;
+        }
+
+        await OpenSelectedMarkdownFileAsync(filePath);
+    }
+
+    private async void ClearRecentFilesMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        await ClearRecentFilesAsync();
+    }
+
     private async void ReloadMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(_currentFilePath))
@@ -511,17 +545,21 @@ public partial class MainWindow : Window
         _pendingAnchor = anchor;
         ConfigureFileWatcher(_currentFilePath);
         UpdateWindowTitle(_currentFilePath);
-        await RenderCurrentFileAsync(false);
+
+        if (await RenderCurrentFileAsync(false))
+        {
+            await RememberRecentFileAsync(_currentFilePath);
+        }
     }
 
-    private async Task RenderCurrentFileAsync(bool preserveScroll)
+    private async Task<bool> RenderCurrentFileAsync(bool preserveScroll)
     {
         if (string.IsNullOrWhiteSpace(_currentFilePath))
         {
             _hasLoadedDocument = false;
             UpdateWindowTitle(null);
             ShowReadyState();
-            return;
+            return false;
         }
 
         await _renderLock.WaitAsync();
@@ -532,7 +570,7 @@ public partial class MainWindow : Window
             if (!fileResult.Success)
             {
                 ShowFileError(fileResult);
-                return;
+                return false;
             }
 
             var rendered = _renderer.Render(fileResult.Content ?? string.Empty, _currentFilePath, Path.GetFileNameWithoutExtension(_currentFilePath));
@@ -540,6 +578,7 @@ public partial class MainWindow : Window
             _pendingAnchor = null;
             _hasLoadedDocument = true;
             ShowPreview();
+            return true;
         }
         finally
         {
@@ -654,6 +693,75 @@ public partial class MainWindow : Window
         DropOverlayInnerBorder.BorderBrush = CreateAlphaBrush(ColorUtilities.Mix(baseColor, "#71D1FF", 0.72), 0.44);
         DropOverlayTitleText.Foreground = CreateSolidBrush(palette["--color-text"]);
         DropOverlayMessageText.Foreground = CreateSolidBrush(ColorUtilities.Mix(baseColor, "#C4D6E7", 0.8));
+    }
+
+    private async Task RememberRecentFileAsync(string filePath)
+    {
+        _recentFiles = await _recentFilesStore.RememberAsync(_paths.RecentFilesStateFilePath, filePath);
+        RefreshRecentFilesMenu();
+    }
+
+    private async Task RemoveMissingRecentFileAsync(string filePath)
+    {
+        _recentFiles = new RecentFilesState(
+            _recentFiles.Files
+                .Where(path => string.Equals(path, filePath, StringComparison.OrdinalIgnoreCase) is false)
+                .ToArray())
+            .Normalize();
+        await _recentFilesStore.SaveAsync(_paths.RecentFilesStateFilePath, _recentFiles);
+        RefreshRecentFilesMenu();
+    }
+
+    private async Task ClearRecentFilesAsync()
+    {
+        await _recentFilesStore.ClearAsync(_paths.RecentFilesStateFilePath);
+        _recentFiles = RecentFilesState.Empty;
+        RefreshRecentFilesMenu();
+    }
+
+    private void RefreshRecentFilesMenu()
+    {
+        if (RecentFilesMenuItem is null)
+        {
+            return;
+        }
+
+        RecentFilesMenuItem.Items.Clear();
+        var availableFiles = _recentFiles.Files.Where(File.Exists).ToArray();
+
+        if (availableFiles.Length == 0)
+        {
+            RecentFilesMenuItem.Items.Add(new MenuItem
+            {
+                Header = "No recent files",
+                IsEnabled = false,
+                Style = (Style)MainMenu.Resources["SubmenuMenuItemStyle"],
+            });
+            return;
+        }
+
+        for (var index = 0; index < availableFiles.Length; index++)
+        {
+            var filePath = availableFiles[index];
+            var menuItem = new MenuItem
+            {
+                Header = $"{index + 1}. {Path.GetFileName(filePath)}",
+                ToolTip = filePath,
+                Tag = filePath,
+                Style = (Style)MainMenu.Resources["SubmenuMenuItemStyle"],
+            };
+            menuItem.Click += RecentFileMenuItem_OnClick;
+            RecentFilesMenuItem.Items.Add(menuItem);
+        }
+
+        RecentFilesMenuItem.Items.Add(new Separator());
+        var clearItem = new MenuItem
+        {
+            Header = "Clear Recent Files",
+            Style = (Style)MainMenu.Resources["SubmenuMenuItemStyle"],
+        };
+        clearItem.Click += ClearRecentFilesMenuItem_OnClick;
+        RecentFilesMenuItem.Items.Add(clearItem);
     }
 
     private void SetMenuResourceBrush(string key, string hexColor)
@@ -912,4 +1020,3 @@ public partial class MainWindow : Window
 
     private sealed record LinkMessage(string Type, string Href);
 }
-

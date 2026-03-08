@@ -15,6 +15,7 @@ public partial class App : System.Windows.Application
         var mainWindow = new MainWindow(
             paths,
             new AppSettingsStore(),
+            new RecentFilesStore(),
             new MarkdownRenderer(),
             new FileTextLoader(),
             new ThemePaletteBuilder(),
@@ -24,4 +25,3 @@ public partial class App : System.Windows.Application
         mainWindow.Show();
     }
 }
-
