@@ -11,7 +11,7 @@ public sealed record RecentFilesState(string[] Files)
     public RecentFilesState Normalize()
     {
         var normalized = (Files ?? [])
-            .Where(MarkdownPathUtilities.IsMarkdownPath)
+            .Where(MarkdownPathUtilities.IsSupportedDocumentPath)
             .Select(MarkdownPathUtilities.NormalizePath)
             .Where(path => string.IsNullOrWhiteSpace(path) is false)
             .Distinct(StringComparer.OrdinalIgnoreCase)

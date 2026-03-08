@@ -32,7 +32,7 @@ public sealed class RecentFilesStore
 
     public async Task<RecentFilesState> RememberAsync(string statePath, string filePath, CancellationToken cancellationToken = default)
     {
-        if (MarkdownPathUtilities.IsMarkdownPath(filePath) is false)
+        if (MarkdownPathUtilities.IsSupportedDocumentPath(filePath) is false)
         {
             return await LoadAsync(statePath, cancellationToken);
         }

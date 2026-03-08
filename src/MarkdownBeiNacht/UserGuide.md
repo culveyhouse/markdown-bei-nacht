@@ -1,12 +1,12 @@
 # Markdown bei Nacht
 
-Markdown bei Nacht is a simple Windows app for reading local Markdown files in a clean dark theme.
+Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt` files in a clean dark theme.
 
 ## What This App Does
 
-- Opens one Markdown file per window.
+- Opens one document file per window.
 - Lets you open files from the app, from Explorer, or by dragging them in.
-- Remembers the last 8 Markdown files you opened in `File > Recent Files`.
+- Remembers the last 8 Markdown and `.txt` files you opened in `File > Recent Files`.
 - Refreshes the preview when the file changes on disk.
 - Opens web links in your browser.
 - Opens Markdown links in a new Markdown bei Nacht window.
@@ -23,17 +23,17 @@ This release is not code signed yet, so Windows may show an `Unknown publisher` 
 
 Some Windows 11 PCs already have Microsoft WebView2 installed. If your PC does not, setup may download and install it during setup.
 
-## Open A Markdown File
+## Open A Document File
 
-You can open Markdown files in any of these ways:
+You can open Markdown and `.txt` files in any of these ways:
 
-- Double-click a Markdown file from Explorer after choosing Markdown bei Nacht in `Open with`.
+- Double-click a Markdown or `.txt` file from Explorer after choosing Markdown bei Nacht in `Open with`.
 - Start the app and choose `File > Open`.
-- Drag a `.md`, `.markdown`, or `.mdown` file into the app window.
+- Drag a `.md`, `.markdown`, `.mdown`, or `.txt` file into the app window.
 
 If the current window is empty, the file opens in that window.
-If the current window already has a Markdown file open, the app opens the new file in a new window.
-You can also reopen one of the last 8 Markdown files from File > Recent Files.
+If the current window already has a document open, the app opens the new file in a new window.
+You can also reopen one of the last 8 Markdown or `.txt` files from File > Recent Files.
 New windows open with a small cascade offset, so they do not land in the exact same spot. This also happens if you launch Markdown bei Nacht again while another window is already open.
 
 ## Use The Theme Setting
@@ -45,7 +45,7 @@ New windows open with a small cascade offset, so they do not land in the exact s
 
 ## Links, Images, And File Behavior
 
-- Markdown links to other local Markdown files open in a new app window.
+- Markdown links to other local Markdown or `.txt` files open in a new app window.
 - `http` and `https` links open in your default web browser.
 - Other local file links open with Windows.
 - Local images can load if the image file exists.
@@ -71,3 +71,4 @@ You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in 
 - The installer is not code signed yet.
 - Remote images are blocked on purpose.
 - ARM64 is not included yet.
+

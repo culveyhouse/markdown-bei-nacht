@@ -318,13 +318,13 @@
                         Background="#33091320">
                     <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
-                        <TextBlock x:Name="DropOverlayTitleText" Text="Drop Markdown File"
+                        <TextBlock x:Name="DropOverlayTitleText" Text="Drop Document File"
                                    FontSize="30"
                                    FontWeight="SemiBold"
                                    Foreground="#F3F8FF"
                                    HorizontalAlignment="Center"
                                    Margin="0,0,0,6" />
-                        <TextBlock x:Name="DropOverlayMessageText" Text="Drop a .md, .markdown, or .mdown file to open it"
+                        <TextBlock x:Name="DropOverlayMessageText" Text="Drop a .md, .markdown, .mdown, or .txt file to open it"
                                    FontSize="15"
                                    Foreground="#C4D6E7"
                                    HorizontalAlignment="Center" />
@@ -334,3 +334,4 @@
         </Grid>
     </DockPanel>
 </Window>
+

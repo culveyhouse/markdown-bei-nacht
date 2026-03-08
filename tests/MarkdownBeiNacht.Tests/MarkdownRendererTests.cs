@@ -48,7 +48,7 @@ public sealed class MarkdownRendererTests
     }
 
     [Fact]
-    public void Render_ResolvesLocalMarkdownLinksAndPreservesAnchors()
+    public void Render_ResolvesLocalDocumentLinksAndPreservesAnchors()
     {
         var renderer = new MarkdownRenderer();
         var tempDirectory = CreateTempDirectory();
@@ -56,7 +56,7 @@ public sealed class MarkdownRendererTests
         {
             var markdownPath = Path.Combine(tempDirectory, "notes.md");
             var markdown = """
-                [Sibling](docs/guide.md#intro)
+                [Sibling](docs/guide.txt#intro)
 
                 [Jump](#section)
 
@@ -65,13 +65,37 @@ public sealed class MarkdownRendererTests
 
             var result = renderer.Render(markdown, markdownPath);
 
-            Assert.Contains(new Uri(Path.Combine(tempDirectory, "docs", "guide.md")).AbsoluteUri + "#intro", result.Html);
+            Assert.Contains(new Uri(Path.Combine(tempDirectory, "docs", "guide.txt")).AbsoluteUri + "#intro", result.Html);
             Assert.Contains("href=\"#section\"", result.Html);
         }
         finally
         {
             Directory.Delete(tempDirectory, true);
         }
+    }
+
+    [Fact]
+    public void RenderDocument_RendersPlainTextAsNormalParagraphs()
+    {
+        var renderer = new MarkdownRenderer();
+        var textPath = Path.Combine(Path.GetTempPath(), "notes.txt");
+        var text = """
+            hello world
+            this is a note
+
+            second paragraph
+            * not markdown formatting *
+            """;
+
+        var result = renderer.RenderDocument(text, textPath, "Notes");
+
+        Assert.Equal("Notes", result.Title);
+        Assert.Contains("<p>hello world<br />", result.Html);
+        Assert.Contains("this is a note</p>", result.Html);
+        Assert.Contains("<p>second paragraph<br />", result.Html);
+        Assert.Contains("* not markdown formatting *</p>", result.Html);
+        Assert.DoesNotContain("<em>", result.Html);
+        Assert.DoesNotContain("<ul>", result.Html);
     }
 
     private static string CreateTempDirectory()
@@ -81,4 +105,3 @@ public sealed class MarkdownRendererTests
         return path;
     }
 }
-

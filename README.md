@@ -6,21 +6,21 @@
 [![.NET](https://img.shields.io/badge/.NET-8-512bd4)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 [![License](https://img.shields.io/badge/license-MIT-f59e0b)](LICENSE)
 
-Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown files in a near-GitHub dark style without opening a full editor or copying content into a browser.
+Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown and plain text files in a near-GitHub dark style without opening a full editor or copying content into a browser.
 
-`v1.1.0` is the current stable public release. The app stays intentionally lean: one Markdown file per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
+`v1.1.0` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
 
 ## Highlights
 
-- Open local Markdown files from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
-- Reopen the last 8 viewed Markdown files from `File > Recent Files`.
-- Keep one Markdown file per window.
+- Open local Markdown and `.txt` files from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
+- Reopen the last 8 viewed Markdown or `.txt` files from `File > Recent Files`.
+- Keep one document per window.
 - Open additional windows with a small cascade offset so they do not stack exactly on top of each other.
 - Auto-refresh the preview when the source file changes on disk.
 - Render GitHub-style Markdown structure with a midnight-dark visual theme.
-- Open local Markdown links in a new app window.
+- Open local Markdown and `.txt` links in a new app window.
 - Open `http/https` links in the default browser.
-- Open non-Markdown local links with the Windows shell.
+- Open other local file links with the Windows shell.
 - Resolve relative local assets against the current Markdown file.
 - Block remote images intentionally.
 - Persist a configurable base dark color in local app settings.
@@ -78,7 +78,7 @@ The app is split into a few clear layers:
 - `installer`: Inno Setup installer script and runtime bootstrapper assets.
 - `scripts`: helper scripts for build, publish, and installer packaging.
 
-At runtime, the native shell reads a Markdown file from disk, converts it to sanitized HTML with `Markdig` plus `HtmlSanitizer`, and injects the result into a local `WebView2` HTML shell for rendering.
+At runtime, the native shell reads a local document from disk, renders Markdown through `Markdig` plus `HtmlSanitizer` or plain text through a simple paragraph renderer, and injects the result into a local `WebView2` HTML shell for rendering.
 
 ## Stack
 
@@ -178,3 +178,4 @@ The resulting setup executable is written to `artifacts/installer/MarkdownBeiNac
 - The installer is not code signed yet.
 - The installer may need internet access if WebView2 is missing on the target machine.
 - ARM64 is not targeted yet.
+

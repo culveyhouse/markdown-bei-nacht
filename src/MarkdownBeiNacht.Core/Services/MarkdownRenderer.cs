@@ -1,3 +1,5 @@
+using System.Net;
+using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -24,9 +26,19 @@ public sealed class MarkdownRenderer
             : _sanitizer.Sanitize(rawHtml, baseUri.AbsoluteUri);
 
         var processedHtml = PostProcessHtml(sanitizedHtml, baseUri);
-        var title = ExtractTitle(content, sourceFilePath, fallbackTitle);
+        var title = ExtractMarkdownTitle(content, sourceFilePath, fallbackTitle);
 
         return new MarkdownRenderResult(title, processedHtml);
+    }
+
+    public MarkdownRenderResult RenderDocument(string content, string? sourceFilePath, string? fallbackTitle = null)
+    {
+        if (MarkdownPathUtilities.IsPlainTextPath(sourceFilePath))
+        {
+            return RenderPlainText(content, sourceFilePath, fallbackTitle);
+        }
+
+        return Render(content, sourceFilePath, fallbackTitle);
     }
 
     private static HtmlSanitizer CreateSanitizer()
@@ -61,7 +73,7 @@ public sealed class MarkdownRenderer
             .Build();
     }
 
-    private static string ExtractTitle(string markdown, string? sourceFilePath, string? fallbackTitle)
+    private static string ExtractMarkdownTitle(string markdown, string? sourceFilePath, string? fallbackTitle)
     {
         foreach (var line in markdown.Split('\n'))
         {
@@ -78,6 +90,11 @@ public sealed class MarkdownRenderer
             }
         }
 
+        return ResolveDocumentTitle(sourceFilePath, fallbackTitle);
+    }
+
+    private static string ResolveDocumentTitle(string? sourceFilePath, string? fallbackTitle)
+    {
         if (!string.IsNullOrWhiteSpace(fallbackTitle))
         {
             return fallbackTitle;
@@ -89,6 +106,25 @@ public sealed class MarkdownRenderer
         }
 
         return "Markdown bei Nacht";
+    }
+
+    private MarkdownRenderResult RenderPlainText(string content, string? sourceFilePath, string? fallbackTitle)
+    {
+        var normalizedContent = (content ?? string.Empty).Replace("\r\n", "\n").Replace('\r', '\n');
+        var paragraphs = Regex.Split(normalizedContent.Trim(), "\\n\\s*\\n")
+            .Where(paragraph => string.IsNullOrWhiteSpace(paragraph) is false)
+            .Select(RenderPlainTextParagraph);
+        var html = string.Join(Environment.NewLine, paragraphs);
+        var title = ResolveDocumentTitle(sourceFilePath, fallbackTitle);
+
+        return new MarkdownRenderResult(title, html);
+    }
+
+    private static string RenderPlainTextParagraph(string paragraph)
+    {
+        var encoded = WebUtility.HtmlEncode(paragraph.Trim());
+        encoded = encoded.Replace("\n", "<br />" + Environment.NewLine);
+        return $"<p>{encoded}</p>";
     }
 
     private string PostProcessHtml(string html, Uri? baseUri)

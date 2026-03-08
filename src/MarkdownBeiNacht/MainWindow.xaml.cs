@@ -22,8 +22,8 @@ namespace MarkdownBeiNacht;
 public partial class MainWindow : Window
 {
     private const string AppDisplayName = "Markdown bei Nacht";
-    private const string ReadyStateTitle = "Ready to Preview Markdown";
-    private const string ReadyStateMessage = "Open a Markdown file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with. If this window already has a file open, another Markdown file opens in a new window.";
+    private const string ReadyStateTitle = "Ready to Preview Documents";
+    private const string ReadyStateMessage = "Open a Markdown or .txt file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with. If this window already has a file open, another document opens in a new window.";
     private const string WebView2DownloadUrl = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
     private const double CascadedWindowOffset = 28d;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -221,8 +221,8 @@ public partial class MainWindow : Window
                 OpenWithShell(target.Uri.ToString());
                 break;
 
-            case LinkTargetKind.LocalMarkdown when !string.IsNullOrWhiteSpace(target.LocalPath):
-                LaunchNewMarkdownWindow(target);
+            case LinkTargetKind.LocalDocument when !string.IsNullOrWhiteSpace(target.LocalPath):
+                LaunchNewDocumentWindow(target);
                 break;
 
             case LinkTargetKind.LocalFile when !string.IsNullOrWhiteSpace(target.LocalPath):
@@ -231,21 +231,21 @@ public partial class MainWindow : Window
         }
     }
 
-    private void LaunchNewMarkdownWindow(ResolvedLinkTarget target)
+    private void LaunchNewDocumentWindow(ResolvedLinkTarget target)
     {
         if (string.IsNullOrWhiteSpace(target.LocalPath) is false)
         {
-            LaunchNewMarkdownWindow(target.LocalPath, target.Anchor);
+            LaunchNewDocumentWindow(target.LocalPath, target.Anchor);
             return;
         }
 
         if (target.Uri is not null)
         {
-            LaunchNewMarkdownWindowWithArgument(target.Uri.AbsoluteUri, null);
+            LaunchNewDocumentWindowWithArgument(target.Uri.AbsoluteUri, null);
         }
     }
 
-    private void LaunchNewMarkdownWindow(string filePath, string? anchor = null)
+    private void LaunchNewDocumentWindow(string filePath, string? anchor = null)
     {
         var normalizedPath = MarkdownPathUtilities.NormalizePath(filePath);
         var argument = string.IsNullOrWhiteSpace(anchor)
@@ -255,10 +255,10 @@ public partial class MainWindow : Window
                 Fragment = anchor,
             }.Uri.AbsoluteUri;
 
-        LaunchNewMarkdownWindowWithArgument(argument, normalizedPath);
+        LaunchNewDocumentWindowWithArgument(argument, normalizedPath);
     }
 
-    private void LaunchNewMarkdownWindowWithArgument(string argument, string? localPath)
+    private void LaunchNewDocumentWindowWithArgument(string argument, string? localPath)
     {
         var executablePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
         if (string.IsNullOrWhiteSpace(executablePath))
@@ -431,7 +431,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        await OpenSelectedMarkdownFileAsync(filePath);
+        await OpenSelectedDocumentFileAsync(filePath);
     }
 
     private async void ClearRecentFilesMenuItem_OnClick(object sender, RoutedEventArgs e)
@@ -507,14 +507,14 @@ public partial class MainWindow : Window
             return;
         }
 
-        await OpenSelectedMarkdownFileAsync(_paths.UserGuideFilePath);
+        await OpenSelectedDocumentFileAsync(_paths.UserGuideFilePath);
     }
 
     private async Task OpenFilePickerAsync()
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Filter = "Markdown files (*.md;*.markdown;*.mdown)|*.md;*.markdown;*.mdown|All files (*.*)|*.*",
+            Filter = "Supported documents (*.md;*.markdown;*.mdown;*.txt)|*.md;*.markdown;*.mdown;*.txt|All files (*.*)|*.*",
             Title = AppDisplayName,
             CheckFileExists = true,
             Multiselect = false,
@@ -525,17 +525,17 @@ public partial class MainWindow : Window
             return;
         }
 
-        await OpenSelectedMarkdownFileAsync(dialog.FileName);
+        await OpenSelectedDocumentFileAsync(dialog.FileName);
     }
 
-    private Task OpenSelectedMarkdownFileAsync(string filePath, string? anchor = null)
+    private Task OpenSelectedDocumentFileAsync(string filePath, string? anchor = null)
     {
         if (WindowOpenPolicy.ShouldReuseCurrentWindow(_hasLoadedDocument))
         {
             return OpenFileAsync(filePath, anchor);
         }
 
-        LaunchNewMarkdownWindow(filePath, anchor);
+        LaunchNewDocumentWindow(filePath, anchor);
         return Task.CompletedTask;
     }
 
@@ -573,7 +573,7 @@ public partial class MainWindow : Window
                 return false;
             }
 
-            var rendered = _renderer.Render(fileResult.Content ?? string.Empty, _currentFilePath, Path.GetFileNameWithoutExtension(_currentFilePath));
+            var rendered = _renderer.RenderDocument(fileResult.Content ?? string.Empty, _currentFilePath, Path.GetFileNameWithoutExtension(_currentFilePath));
             await ApplyRenderAsync(rendered, scrollRatio, _pendingAnchor);
             _pendingAnchor = null;
             _hasLoadedDocument = true;
@@ -958,7 +958,7 @@ public partial class MainWindow : Window
 
     private void Window_OnPreviewDragOver(object sender, WpfDragEventArgs e)
     {
-        var canOpen = TryGetDraggedMarkdownPath(e.Data, out _);
+        var canOpen = TryGetDraggedDocumentPath(e.Data, out _);
         e.Effects = canOpen ? System.Windows.DragDropEffects.Copy : System.Windows.DragDropEffects.None;
         e.Handled = true;
         DropOverlay.Visibility = canOpen ? Visibility.Visible : Visibility.Collapsed;
@@ -974,15 +974,15 @@ public partial class MainWindow : Window
         DropOverlay.Visibility = Visibility.Collapsed;
         e.Handled = true;
 
-        if (!TryGetDraggedMarkdownPath(e.Data, out var path) || string.IsNullOrWhiteSpace(path))
+        if (!TryGetDraggedDocumentPath(e.Data, out var path) || string.IsNullOrWhiteSpace(path))
         {
             return;
         }
 
-        await OpenSelectedMarkdownFileAsync(path);
+        await OpenSelectedDocumentFileAsync(path);
     }
 
-    private static bool TryGetDraggedMarkdownPath(WpfDataObject dataObject, out string? path)
+    private static bool TryGetDraggedDocumentPath(WpfDataObject dataObject, out string? path)
     {
         path = null;
         if (!dataObject.GetDataPresent(System.Windows.DataFormats.FileDrop))
@@ -996,7 +996,7 @@ public partial class MainWindow : Window
         }
 
         var candidate = files[0];
-        if (!MarkdownPathUtilities.IsMarkdownPath(candidate))
+        if (!MarkdownPathUtilities.IsSupportedDocumentPath(candidate))
         {
             return false;
         }
@@ -1020,3 +1020,4 @@ public partial class MainWindow : Window
 
     private sealed record LinkMessage(string Type, string Href);
 }
+

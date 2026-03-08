@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- A new `File > Recent Files` menu that remembers the last 8 Markdown files opened and lets you reopen them quickly.
+- A new `File > Recent Files` menu that remembers the last 8 Markdown and `.txt` files opened and lets you reopen them quickly.
 
 ### Changed
 
@@ -108,3 +108,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Installer compilation still depends on a local Inno Setup installation.
 - No signed release artifacts yet.
+

@@ -44,6 +44,13 @@ feat(scope): short summary
 MSG
 ```
 
+## Build Workflow
+
+- Do not run `scripts/publish.ps1` and `scripts/build-installer.ps1` in parallel.
+- These scripts share the same publish output under `artifacts/publish/win-x64` and can collide on Windows file locks.
+- If both artifacts are needed, run them sequentially.
+- If the installer is needed and `build-installer.ps1` already performs the required publish step, prefer running only the installer script.
+
 ## Documentation And Changelog Policy
 
 - When behavior, interfaces, defaults, or workflows change, update the nearest relevant `README.md` in the same scope.
@@ -75,5 +82,4 @@ MSG
 - Build helper scripts live under `scripts`.
 - Installer assets and the Inno Setup script live under `installer`.
 - The current project includes workspace-local SDK and cache folders that should not be committed.
-
 
