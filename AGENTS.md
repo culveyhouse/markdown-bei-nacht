@@ -56,6 +56,7 @@ MSG
 - When behavior, interfaces, defaults, or workflows change, update the nearest relevant `README.md` in the same scope.
 - If a scoped changelog exists, update release notes according to that area's policy.
 - Do not create new governance docs such as `CONTRIBUTING.md` unless explicitly requested.
+- When bumping a release version, also update src/MarkdownBeiNacht/UserGuide.md; it becomes the installed README.md opened from Help > User Guide. Delete this reminder once that is done.
 
 ## Safety Guardrails
 
