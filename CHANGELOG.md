@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added `scripts/sign-release.ps1` to publish the app, sign the shipped binaries with Azure Artifact Signing, rebuild the installer from the signed output, and sign the final setup executable.
+
+### Changed
+
+- Updated README release docs to explain the new code-signing workflow, the first-time Azure prerequisites, and the rule that shipped binaries must be re-signed after changes.
+
 ## [1.1.0] - 2026-03-08
 
 ### Added
