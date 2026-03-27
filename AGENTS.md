@@ -1,6 +1,6 @@
 # AGENTS Instructions
 
-These instructions apply to the repository rooted at `C:\Users\dculv\Documents\Codex Local Test`.
+These instructions apply to the repository rooted at `C:\Users\dculv\Documents\markdown-bei-nacht`.
 
 ## Editing Rule
 

@@ -422,6 +422,7 @@ FodyWeavers.xsd
 .localprofile/
 .nuget/
 dotnet-install.ps1
+.codex/
 
 # Local diagnostics and scratch files
 ap-test.txt
