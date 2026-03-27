@@ -1,6 +1,6 @@
 # Markdown bei Nacht
 
-[![Version](https://img.shields.io/badge/version-v1.1.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
+[![Version](https://img.shields.io/badge/version-v1.1.1-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Release State](https://img.shields.io/badge/release-stable-16a34a)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20x64-0ea5e9)](https://github.com/culveyhouse/markdown-bei-nacht)
 [![.NET](https://img.shields.io/badge/.NET-8-512bd4)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
@@ -8,7 +8,7 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown and plain text files in a near-GitHub dark style without opening a full editor or copying content into a browser.
 
-`v1.1.0` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
+`v1.1.1` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
 
 ## Highlights
 
@@ -213,7 +213,7 @@ Current repository defaults for the script:
 
 If those Azure names or the signing region ever change, pass overrides to `scripts/sign-release.ps1` instead of editing the publish or installer scripts.
 
-## Known Limitations In v1.1.0
+## Known Limitations In v1.1.1
 
 - Remote images are blocked by design.
 - Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
