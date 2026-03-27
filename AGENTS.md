@@ -1,6 +1,6 @@
 # AGENTS Instructions
 
-These instructions apply to the repository rooted at `C:\Users\dculv\Documents\markdown-bei-nacht`.
+These instructions apply to the repository rooted at `C:\Users\dculv\Documents\Windows App Projects\markdown-bei-nacht`.
 
 ## Editing Rule
 

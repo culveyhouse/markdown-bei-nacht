@@ -1,6 +1,6 @@
 # Markdown bei Nacht
 
-[![Version](https://img.shields.io/badge/version-v1.1.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
+[![Version](https://img.shields.io/badge/version-v1.1.1-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Release State](https://img.shields.io/badge/release-stable-16a34a)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20x64-0ea5e9)](https://github.com/culveyhouse/markdown-bei-nacht)
 [![.NET](https://img.shields.io/badge/.NET-8-512bd4)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
@@ -8,7 +8,7 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown and plain text files in a near-GitHub dark style without opening a full editor or copying content into a browser.
 
-`v1.1.0` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
+`v1.1.1` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
 
 ## Highlights
 
@@ -50,9 +50,9 @@ Install notes:
 
 ## Windows Trust Note
 
-This release is currently unsigned. Windows may show an `Unknown publisher` or similar trust warning before setup starts.
+Release artifacts can be code signed with Azure Artifact Signing by running `scripts/sign-release.ps1`.
 
-That is expected for the current direct-download release. The app is open source, but the installer is not code signed yet.
+That signed release flow removes the worst `Unknown publisher` / unsigned posture on Windows, but a brand-new download can still see SmartScreen reputation prompts until the app builds reputation.
 
 ## Compatibility
 
@@ -162,7 +162,7 @@ Release packaging behavior:
 - optional desktop shortcut during install
 - installed user guide in the app folder, Start Menu, and in-app `Help` menu
 - WebView2 bootstrap when the runtime is missing
-- unsigned installer for the current direct-download release
+- signed installer for release distribution when `scripts/sign-release.ps1` is used
 
 Build the installer from the repository root with:
 
@@ -172,10 +172,51 @@ PowerShell -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1 -Configur
 
 The resulting setup executable is written to `artifacts/installer/MarkdownBeiNacht-Setup.exe`.
 
-## Known Limitations In v1.1.0
+## Code Signing Releases
+
+The release signing workflow lives in `scripts/sign-release.ps1`.
+
+Use it whenever a shipped binary changes. In practice, rerun signing after any change that rebuilds one of these files:
+
+- `artifacts/publish/win-x64/MarkdownBeiNacht.exe`
+- `artifacts/publish/win-x64/MarkdownBeiNacht.dll`
+- `artifacts/publish/win-x64/MarkdownBeiNacht.Core.dll`
+- `artifacts/installer/MarkdownBeiNacht-Setup.exe`
+
+From the repository root:
+
+```powershell
+PowerShell -ExecutionPolicy Bypass -File .\scripts\sign-release.ps1
+```
+
+What the script does:
+
+- runs `scripts/publish.ps1`
+- signs the published app binaries with Azure Artifact Signing
+- rebuilds the Inno Setup installer from those signed binaries
+- signs the final `MarkdownBeiNacht-Setup.exe`
+- verifies the final installer signature
+
+First-time machine setup:
+
+1. Install the `.NET 8 Runtime`.
+2. Install the `Azure CLI`.
+3. Install `Microsoft.Azure.ArtifactSigningClientTools`.
+4. Sign in once with `az login --use-device-code`.
+5. Make sure the Azure signing account, identity validation, and certificate profile already exist.
+
+Current repository defaults for the script:
+
+- Signing account: `culveyhouse-signing`
+- Certificate profile: `public-trust`
+- Endpoint: `https://eus.codesigning.azure.net`
+
+If those Azure names or the signing region ever change, pass overrides to `scripts/sign-release.ps1` instead of editing the publish or installer scripts.
+
+## Known Limitations In v1.1.1
 
 - Remote images are blocked by design.
-- The installer is not code signed yet.
+- Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
 - The installer may need internet access if WebView2 is missing on the target machine.
 - ARM64 is not targeted yet.
 

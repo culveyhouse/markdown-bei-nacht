@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.1.1] - 2026-03-27
+
+### Added
+
+- Added `scripts/sign-release.ps1` to publish the app, sign the shipped binaries with Azure Artifact Signing, rebuild the installer from the signed output, and sign the final setup executable.
+
+### Changed
+
+- Promoted the current release line to `v1.1.1` as the first signed Windows release for Markdown bei Nacht.
+- Updated README release docs to explain the new code-signing workflow, the first-time Azure prerequisites, and the rule that shipped binaries must be re-signed after changes.
+
 ## [1.1.0] - 2026-03-08
 
 ### Added
