@@ -19,7 +19,7 @@ Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt`
 4. If you want an icon on your desktop, check the desktop shortcut option during setup.
 5. Finish the setup.
 
-This release is not code signed yet, so Windows may show an `Unknown publisher` warning before setup starts.
+Release installers are code signed, but brand-new downloads can still show Windows SmartScreen reputation prompts until the app builds reputation.
 
 Some Windows 11 PCs already have Microsoft WebView2 installed. If your PC does not, setup may download and install it during setup.
 
@@ -66,9 +66,9 @@ The installed app folder also includes this `README.md` file.
 
 You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in Windows 11.
 
-## Known Limits In v1.1.0
+## Known Limits In v1.1.1
 
-- The installer is not code signed yet.
+- Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
 - Remote images are blocked on purpose.
 - ARM64 is not included yet.
 

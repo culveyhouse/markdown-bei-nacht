@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrected the installed user guide wording for signed release installers and current `v1.1.1` known limits.
+
 ## [1.1.1] - 2026-03-27
 
 ### Added
