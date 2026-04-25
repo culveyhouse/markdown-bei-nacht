@@ -6,8 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Allowed local and remote images plus safe audio/video media embeds in rendered Markdown previews.
+
+### Changed
+
+- Updated test project package versions to clear vulnerable transitive dependencies.
+- Disabled WebView2 DevTools outside debug builds while keeping browser accelerator keys available for familiar shortcuts like zoom.
+- Clarified that Explorer `Open with` registration is intentionally limited to Markdown file types while `.txt` remains supported in app open flows.
+
 ### Fixed
 
+- Routed `Ctrl+R` through the app reload command so it refreshes the current document instead of letting WebView2 reload the preview shell.
 - Corrected the installed user guide wording for signed release installers and current `v1.1.1` known limits.
 
 ## [1.1.1] - 2026-03-27

@@ -12,17 +12,19 @@ Markdown bei Nacht is a lightweight Windows desktop app for previewing local Mar
 
 ## Highlights
 
-- Open local Markdown and `.txt` files from Explorer `Open with`, in-app `File > Open`, or drag-and-drop.
+- Open local Markdown files from Explorer `Open with`.
+- Open Markdown and `.txt` files from in-app `File > Open` or drag-and-drop.
 - Reopen the last 8 viewed Markdown or `.txt` files from `File > Recent Files`.
 - Keep one document per window.
 - Open additional windows with a small cascade offset so they do not stack exactly on top of each other.
 - Auto-refresh the preview when the source file changes on disk.
+- Manually reload the current document from `View > Reload`, `F5`, or `Ctrl+R`.
 - Render GitHub-style Markdown structure with a midnight-dark visual theme.
 - Open local Markdown and `.txt` links in a new app window.
 - Open `http/https` links in the default browser.
 - Open other local file links with the Windows shell.
 - Resolve relative local assets against the current Markdown file.
-- Block remote images intentionally.
+- Display local and remote images plus safe audio/video media embeds.
 - Persist a configurable base dark color in local app settings.
 - Open the installed user guide from `Help > User Guide` or `F1`.
 - Install with an optional desktop shortcut and Explorer `Open with` support for Markdown file types.
@@ -215,7 +217,6 @@ If those Azure names or the signing region ever change, pass overrides to `scrip
 
 ## Known Limitations In v1.1.1
 
-- Remote images are blocked by design.
 - Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
 - The installer may need internet access if WebView2 is missing on the target machine.
 - ARM64 is not targeted yet.

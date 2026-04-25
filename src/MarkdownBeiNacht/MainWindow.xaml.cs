@@ -23,7 +23,7 @@ public partial class MainWindow : Window
 {
     private const string AppDisplayName = "Markdown bei Nacht";
     private const string ReadyStateTitle = "Ready to Preview Documents";
-    private const string ReadyStateMessage = "Open a Markdown or .txt file from File > Open, drag one into the window, or launch Markdown bei Nacht from Explorer using Open with. If this window already has a file open, another document opens in a new window.";
+    private const string ReadyStateMessage = "Open a Markdown or .txt file from File > Open, drag one into the window, or launch Markdown files from Explorer using Open with. If this window already has a file open, another document opens in a new window.";
     private const string WebView2DownloadUrl = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
     private const double CascadedWindowOffset = 28d;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -150,7 +150,11 @@ public partial class MainWindow : Window
         }
 
         PreviewWebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = true;
+#if DEBUG
         PreviewWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+#else
+        PreviewWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+#endif
         PreviewWebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
         PreviewWebView.CoreWebView2.WebMessageReceived += CoreWebView2_OnWebMessageReceived;
         PreviewWebView.CoreWebView2.DOMContentLoaded += CoreWebView2_OnDOMContentLoaded;
@@ -440,6 +444,11 @@ public partial class MainWindow : Window
     }
 
     private async void ReloadMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        await ReloadCurrentFileAsync();
+    }
+
+    private async Task ReloadCurrentFileAsync()
     {
         if (!string.IsNullOrWhiteSpace(_currentFilePath))
         {
@@ -941,10 +950,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (e.Key == Key.F5)
+        if (IsReloadShortcut(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
-            ReloadMenuItem_OnClick(sender, new RoutedEventArgs());
+            _ = ReloadCurrentFileAsync();
             return;
         }
 
@@ -955,6 +964,9 @@ public partial class MainWindow : Window
             return;
         }
     }
+
+    internal static bool IsReloadShortcut(Key key, ModifierKeys modifiers) =>
+        key == Key.F5 || modifiers == ModifierKeys.Control && key == Key.R;
 
     private void Window_OnPreviewDragOver(object sender, WpfDragEventArgs e)
     {
