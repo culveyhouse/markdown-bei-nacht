@@ -7,6 +7,7 @@
   <title>Markdown bei Nacht</title>
   <link rel="stylesheet" href="preview.css">
   <script src="highlight.min.js"></script>
+  <script src="mermaid.min.js"></script>
 </head>
 <body>
   <main class="surface">
@@ -17,6 +18,7 @@
     (() => {
       const root = document.documentElement;
       const content = document.getElementById('content');
+      let contentVersion = 0;
 
       function applyTheme(theme) {
         Object.entries(theme || {}).forEach(([key, value]) => {
@@ -30,6 +32,10 @@
         }
 
         document.querySelectorAll('pre code').forEach((block) => {
+          if (isMermaidCodeBlock(block)) {
+            return;
+          }
+
           try {
             window.hljs.highlightElement(block);
           } catch (_) {
@@ -37,12 +43,124 @@
         });
       }
 
+      function isMermaidCodeBlock(block) {
+        return block.classList.contains('language-mermaid') || block.classList.contains('mermaid');
+      }
+
+      function configureMermaid() {
+        if (!window.mermaid || typeof window.mermaid.initialize !== 'function') {
+          return false;
+        }
+
+        const style = getComputedStyle(root);
+        const color = (name, fallback) => style.getPropertyValue(name).trim() || fallback;
+
+        window.mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          theme: 'base',
+          flowchart: {
+            htmlLabels: false,
+            useMaxWidth: true
+          },
+          sequence: {
+            useMaxWidth: true
+          },
+          themeVariables: {
+            darkMode: true,
+            background: color('--color-panel', '#11233b'),
+            primaryColor: color('--color-panel-alt', '#1a3554'),
+            primaryTextColor: color('--color-text', '#f4f8ff'),
+            primaryBorderColor: color('--color-border', '#5f7fa3'),
+            lineColor: color('--color-accent', '#71d1ff'),
+            textColor: color('--color-text', '#f4f8ff'),
+            mainBkg: color('--color-panel', '#11233b'),
+            nodeBorder: color('--color-border', '#5f7fa3'),
+            clusterBkg: color('--color-code-bg', '#08101d'),
+            clusterBorder: color('--color-border', '#5f7fa3'),
+            edgeLabelBackground: color('--color-bg', '#0b1320'),
+            tertiaryColor: color('--color-code-bg', '#08101d')
+          }
+        });
+
+        return true;
+      }
+
+      function createMermaidFallback(source, message) {
+        const figure = document.createElement('figure');
+        figure.className = 'asset-placeholder mermaid-fallback';
+
+        const heading = document.createElement('strong');
+        heading.textContent = message;
+        figure.appendChild(heading);
+
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        code.className = 'language-mermaid';
+        code.textContent = source;
+        pre.appendChild(code);
+        figure.appendChild(pre);
+
+        return figure;
+      }
+
+      async function renderMermaid(version) {
+        const blocks = Array.from(document.querySelectorAll('pre > code'))
+          .filter(isMermaidCodeBlock);
+
+        if (blocks.length === 0) {
+          return;
+        }
+
+        if (!configureMermaid() || typeof window.mermaid.render !== 'function') {
+          blocks.forEach((block) => {
+            const pre = block.closest('pre');
+            if (pre) {
+              pre.replaceWith(createMermaidFallback(block.textContent || '', 'Mermaid renderer unavailable'));
+            }
+          });
+          return;
+        }
+
+        await Promise.all(blocks.map(async (block, index) => {
+          const pre = block.closest('pre');
+          if (!pre) {
+            return;
+          }
+
+          const source = block.textContent || '';
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.setAttribute('role', 'img');
+          container.setAttribute('aria-label', 'Mermaid diagram');
+          pre.replaceWith(container);
+
+          try {
+            const result = await window.mermaid.render(`markdown-bei-nacht-mermaid-${version}-${index}`, source);
+            if (version !== contentVersion || !document.body.contains(container)) {
+              return;
+            }
+
+            container.innerHTML = result.svg;
+            if (typeof result.bindFunctions === 'function') {
+              result.bindFunctions(container);
+            }
+          } catch (_) {
+            if (version === contentVersion && document.body.contains(container)) {
+              container.replaceWith(createMermaidFallback(source, 'Mermaid diagram could not render'));
+            }
+          }
+        }));
+      }
+
       window.markdownViewer = {
         applyContent(payload) {
+          const version = ++contentVersion;
           applyTheme(payload.theme || {});
           content.innerHTML = payload.html || '';
           document.title = payload.title || 'Markdown bei Nacht';
           highlightCode();
+          renderMermaid(version);
         },
         captureScrollRatio() {
           const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);

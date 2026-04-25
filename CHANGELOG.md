@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-04-25
 
 ### Added
 
 - Allowed local and remote images plus safe audio/video media embeds in rendered Markdown previews.
+- Added Mermaid diagram rendering for fenced `mermaid` code blocks.
 
 ### Changed
 
@@ -19,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - Routed `Ctrl+R` through the app reload command so it refreshes the current document instead of letting WebView2 reload the preview shell.
-- Corrected the installed user guide wording for signed release installers and current `v1.1.1` known limits.
+- Corrected the installed user guide wording for signed release installers and current release known limits.
 
 ## [1.1.1] - 2026-03-27
 

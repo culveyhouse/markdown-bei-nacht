@@ -128,6 +128,24 @@ public sealed class MarkdownRendererTests
         Assert.DoesNotContain("<iframe", result.Html);
     }
 
+    [Fact]
+    public void Render_PreservesMermaidFencedCodeBlocksForPreviewRendering()
+    {
+        var renderer = new MarkdownRenderer();
+        var markdown = """
+            ```mermaid
+            flowchart TD
+                A[Open Markdown] --> B[Render Diagram]
+            ```
+            """;
+
+        var result = renderer.Render(markdown, null);
+
+        Assert.Contains("language-mermaid", result.Html);
+        Assert.Contains("flowchart TD", result.Html);
+        Assert.Contains("A[Open Markdown] --&gt; B[Render Diagram]", result.Html);
+    }
+
     private static string CreateTempDirectory()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));

@@ -48,6 +48,17 @@ public static string SayGoodnight(string name)
 Get-ChildItem -Path . -Filter *.md
 ```
 
+## Mermaid Diagram
+
+```mermaid
+flowchart TD
+    A[Open Markdown] --> B[Render Preview]
+    B --> C{Contains extras?}
+    C -->|Images| D[Show image]
+    C -->|Media| E[Show controls]
+    C -->|Mermaid| F[Render diagram]
+```
+
 ## Links
 
 - [Jump to media](#media-embeds)

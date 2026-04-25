@@ -1,6 +1,6 @@
 # Markdown bei Nacht
 
-Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt` files in a clean dark theme.
+Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt` files in a clean dark theme, including images, safe media embeds, and Mermaid diagrams in Markdown previews.
 
 ## What This App Does
 
@@ -10,6 +10,7 @@ Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt`
 - Remembers the last 8 Markdown and `.txt` files you opened in `File > Recent Files`.
 - Refreshes the preview when the file changes on disk.
 - Reloads the current document from `View > Reload`, `F5`, or `Ctrl+R`.
+- Renders Mermaid diagrams from fenced `mermaid` code blocks.
 - Opens web links in your browser.
 - Opens Markdown and `.txt` links in a new Markdown bei Nacht window.
 
@@ -55,6 +56,7 @@ New windows open with a small cascade offset, so they do not land in the exact s
 - Other local file links open with Windows.
 - Local images can load if the image file exists.
 - Remote images and safe audio/video media embeds can load in the preview.
+- Mermaid diagrams render directly in the preview when written as fenced `mermaid` code blocks.
 
 ## Find Help After Install
 
@@ -71,7 +73,7 @@ The installed app folder also includes this `README.md` file.
 
 You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in Windows 11.
 
-## Known Limits In v1.1.1
+## Known Limits In v1.2.0
 
 - Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
 - ARM64 is not included yet.

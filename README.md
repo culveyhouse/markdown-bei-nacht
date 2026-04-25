@@ -1,6 +1,6 @@
 # Markdown bei Nacht
 
-[![Version](https://img.shields.io/badge/version-v1.1.1-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
+[![Version](https://img.shields.io/badge/version-v1.2.0-2563eb)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Release State](https://img.shields.io/badge/release-stable-16a34a)](https://github.com/culveyhouse/markdown-bei-nacht/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2011%20x64-0ea5e9)](https://github.com/culveyhouse/markdown-bei-nacht)
 [![.NET](https://img.shields.io/badge/.NET-8-512bd4)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
@@ -8,7 +8,7 @@
 
 Markdown bei Nacht is a lightweight Windows desktop app for previewing local Markdown and plain text files in a near-GitHub dark style without opening a full editor or copying content into a browser.
 
-`v1.1.1` is the current stable public release. The app stays intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
+`v1.2.0` is the current stable public release. This version adds remote media embeds, Mermaid diagram rendering, and a fixed `Ctrl+R` reload path while keeping the app intentionally lean: one document per window, clean Windows install flow, local-first behavior, and no forced takeover of your default Markdown file association.
 
 ## Highlights
 
@@ -20,6 +20,7 @@ Markdown bei Nacht is a lightweight Windows desktop app for previewing local Mar
 - Auto-refresh the preview when the source file changes on disk.
 - Manually reload the current document from `View > Reload`, `F5`, or `Ctrl+R`.
 - Render GitHub-style Markdown structure with a midnight-dark visual theme.
+- Render Mermaid diagrams from fenced `mermaid` code blocks.
 - Open local Markdown and `.txt` links in a new app window.
 - Open `http/https` links in the default browser.
 - Open other local file links with the Windows shell.
@@ -52,7 +53,7 @@ Install notes:
 
 ## Windows Trust Note
 
-Release artifacts can be code signed with Azure Artifact Signing by running `scripts/sign-release.ps1`.
+Release artifacts are code signed with Azure Artifact Signing by running `scripts/sign-release.ps1`.
 
 That signed release flow removes the worst `Unknown publisher` / unsigned posture on Windows, but a brand-new download can still see SmartScreen reputation prompts until the app builds reputation.
 
@@ -91,6 +92,7 @@ At runtime, the native shell reads a local document from disk, renders Markdown 
 - `Markdig`
 - `HtmlSanitizer`
 - `highlight.js`
+- `Mermaid`
 - `xUnit`
 - `Inno Setup`
 
@@ -215,7 +217,7 @@ Current repository defaults for the script:
 
 If those Azure names or the signing region ever change, pass overrides to `scripts/sign-release.ps1` instead of editing the publish or installer scripts.
 
-## Known Limitations In v1.1.1
+## Known Limitations In v1.2.0
 
 - Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
 - The installer may need internet access if WebView2 is missing on the target machine.
