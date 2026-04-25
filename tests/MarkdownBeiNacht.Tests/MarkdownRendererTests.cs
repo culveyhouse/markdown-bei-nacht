@@ -30,6 +30,8 @@ public sealed class MarkdownRendererTests
                 ![Local](planet.png)
 
                 ![Remote](https://example.com/image.png)
+
+                <video controls src="https://example.com/demo.mp4"></video>
                 """;
 
             var result = renderer.Render(markdown, markdownPath);
@@ -39,7 +41,9 @@ public sealed class MarkdownRendererTests
             Assert.Contains("<table>", result.Html);
             Assert.Contains("language-csharp", result.Html);
             Assert.Contains(new Uri(imagePath).AbsoluteUri, result.Html);
-            Assert.Contains("Remote image blocked", result.Html);
+            Assert.Contains("https://example.com/image.png", result.Html);
+            Assert.Contains("https://example.com/demo.mp4", result.Html);
+            Assert.DoesNotContain("Remote image blocked", result.Html);
         }
         finally
         {
@@ -96,6 +100,50 @@ public sealed class MarkdownRendererTests
         Assert.Contains("* not markdown formatting *</p>", result.Html);
         Assert.DoesNotContain("<em>", result.Html);
         Assert.DoesNotContain("<ul>", result.Html);
+    }
+
+    [Fact]
+    public void Render_AllowsSafeMediaEmbedsButNotIframes()
+    {
+        var renderer = new MarkdownRenderer();
+        var markdown = """
+            <audio controls>
+                <source src="https://example.com/clip.mp3" type="audio/mpeg">
+            </audio>
+
+            <video controls poster="https://example.com/poster.png">
+                <source src="https://example.com/movie.mp4" type="video/mp4">
+            </video>
+
+            <iframe src="https://example.com/embed"></iframe>
+            """;
+
+        var result = renderer.Render(markdown, null);
+
+        Assert.Contains("<audio", result.Html);
+        Assert.Contains("https://example.com/clip.mp3", result.Html);
+        Assert.Contains("<video", result.Html);
+        Assert.Contains("https://example.com/poster.png", result.Html);
+        Assert.Contains("https://example.com/movie.mp4", result.Html);
+        Assert.DoesNotContain("<iframe", result.Html);
+    }
+
+    [Fact]
+    public void Render_PreservesMermaidFencedCodeBlocksForPreviewRendering()
+    {
+        var renderer = new MarkdownRenderer();
+        var markdown = """
+            ```mermaid
+            flowchart TD
+                A[Open Markdown] --> B[Render Diagram]
+            ```
+            """;
+
+        var result = renderer.Render(markdown, null);
+
+        Assert.Contains("language-mermaid", result.Html);
+        Assert.Contains("flowchart TD", result.Html);
+        Assert.Contains("A[Open Markdown] --&gt; B[Render Diagram]", result.Html);
     }
 
     private static string CreateTempDirectory()

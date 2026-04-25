@@ -1,13 +1,16 @@
 # Markdown bei Nacht
 
-Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt` files in a clean dark theme.
+Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt` files in a clean dark theme, including images, safe media embeds, and Mermaid diagrams in Markdown previews.
 
 ## What This App Does
 
 - Opens one document file per window.
-- Lets you open files from the app, from Explorer, or by dragging them in.
+- Lets you open Markdown files from Explorer `Open with`.
+- Lets you open Markdown and `.txt` files from the app or by dragging them in.
 - Remembers the last 8 Markdown and `.txt` files you opened in `File > Recent Files`.
 - Refreshes the preview when the file changes on disk.
+- Reloads the current document from `View > Reload`, `F5`, or `Ctrl+R`.
+- Renders Mermaid diagrams from fenced `mermaid` code blocks.
 - Opens web links in your browser.
 - Opens Markdown and `.txt` links in a new Markdown bei Nacht window.
 
@@ -19,15 +22,18 @@ Markdown bei Nacht is a simple Windows app for reading local Markdown and `.txt`
 4. If you want an icon on your desktop, check the desktop shortcut option during setup.
 5. Finish the setup.
 
-This release is not code signed yet, so Windows may show an `Unknown publisher` warning before setup starts.
+Release installers are code signed, but brand-new downloads can still show Windows SmartScreen reputation prompts until the app builds reputation.
 
 Some Windows 11 PCs already have Microsoft WebView2 installed. If your PC does not, setup may download and install it during setup.
 
 ## Open A Document File
 
-You can open Markdown and `.txt` files in any of these ways:
+You can open Markdown files from Explorer `Open with`:
 
-- Double-click a Markdown or `.txt` file from Explorer after choosing Markdown bei Nacht in `Open with`.
+- In Explorer, use `Open with` for `.md`, `.markdown`, or `.mdown` files after choosing Markdown bei Nacht.
+
+You can open Markdown or `.txt` files from inside the app:
+
 - Start the app and choose `File > Open`.
 - Drag a `.md`, `.markdown`, `.mdown`, or `.txt` file into the app window.
 
@@ -49,7 +55,8 @@ New windows open with a small cascade offset, so they do not land in the exact s
 - `http` and `https` links open in your default web browser.
 - Other local file links open with Windows.
 - Local images can load if the image file exists.
-- Remote images are blocked on purpose in this version.
+- Remote images and safe audio/video media embeds can load in the preview.
+- Mermaid diagrams render directly in the preview when written as fenced `mermaid` code blocks.
 
 ## Find Help After Install
 
@@ -66,9 +73,8 @@ The installed app folder also includes this `README.md` file.
 
 You can uninstall Markdown bei Nacht from `Settings > Apps > Installed apps` in Windows 11.
 
-## Known Limits In v1.1.0
+## Known Limits In v1.2.0
 
-- The installer is not code signed yet.
-- Remote images are blocked on purpose.
+- Brand-new signed downloads can still trigger SmartScreen reputation prompts until the app builds reputation.
 - ARM64 is not included yet.
 

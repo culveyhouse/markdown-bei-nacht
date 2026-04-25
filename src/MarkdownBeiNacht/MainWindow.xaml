@@ -232,7 +232,7 @@
                 <MenuItem Header="_Reload"
                           Style="{StaticResource SubmenuMenuItemStyle}"
                           Click="ReloadMenuItem_OnClick"
-                          InputGestureText="F5" />
+                          InputGestureText="F5 / Ctrl+R" />
                 <MenuItem Header="_Settings..."
                           Style="{StaticResource SubmenuMenuItemStyle}"
                           Click="SettingsMenuItem_OnClick"

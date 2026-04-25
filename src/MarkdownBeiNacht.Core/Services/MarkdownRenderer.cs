@@ -44,12 +44,12 @@ public sealed class MarkdownRenderer
     private static HtmlSanitizer CreateSanitizer()
     {
         var sanitizer = new HtmlSanitizer();
-        foreach (var tag in new[] { "input", "figure", "figcaption" })
+        foreach (var tag in new[] { "input", "figure", "figcaption", "audio", "video", "source", "track" })
         {
             sanitizer.AllowedTags.Add(tag);
         }
 
-        foreach (var attribute in new[] { "class", "id", "disabled", "checked", "type", "href", "src", "alt", "title", "rel" })
+        foreach (var attribute in new[] { "class", "id", "disabled", "checked", "type", "href", "src", "alt", "title", "rel", "controls", "poster", "preload", "width", "height", "kind", "srclang", "label" })
         {
             sanitizer.AllowedAttributes.Add(attribute);
         }
@@ -133,35 +133,20 @@ public sealed class MarkdownRenderer
 
         foreach (var image in document.Images.ToArray())
         {
-            var source = image.GetAttribute("src");
-            if (string.IsNullOrWhiteSpace(source))
-            {
-                continue;
-            }
+            NormalizeResourceAttribute(document, image, "src", baseUri, "Image unavailable", "Missing local image", replaceNodeOnFailure: true);
+        }
 
-            if (!TryResolveUri(source, baseUri, out var resolvedUri))
-            {
-                ReplaceNodeWithPlaceholder(document, image, "Image unavailable", source);
-                continue;
-            }
+        foreach (var media in document.QuerySelectorAll("audio, video").ToArray())
+        {
+            NormalizeResourceAttribute(document, media, "src", baseUri, "Media unavailable", "Missing local media", replaceNodeOnFailure: true);
+            NormalizeResourceAttribute(document, media, "poster", baseUri, "Poster unavailable", "Missing local poster", replaceNodeOnFailure: false);
+        }
 
-            if (string.Equals(resolvedUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(resolvedUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+        foreach (var source in document.QuerySelectorAll("source, track").ToArray())
+        {
+            if (!NormalizeResourceAttribute(document, source, "src", baseUri, "Media source unavailable", "Missing local media source", replaceNodeOnFailure: false))
             {
-                ReplaceNodeWithPlaceholder(document, image, "Remote image blocked", resolvedUri.AbsoluteUri);
-                continue;
-            }
-
-            if (resolvedUri.IsFile)
-            {
-                var localPath = MarkdownPathUtilities.NormalizePath(resolvedUri.LocalPath.Split('#', '?')[0]);
-                if (!File.Exists(localPath))
-                {
-                    ReplaceNodeWithPlaceholder(document, image, "Missing local image", localPath);
-                    continue;
-                }
-
-                image.SetAttribute("src", resolvedUri.AbsoluteUri);
+                RemoveNode(source);
             }
         }
 
@@ -204,6 +189,64 @@ public sealed class MarkdownRenderer
         return document.Body?.InnerHtml ?? string.Empty;
     }
 
+    private static bool NormalizeResourceAttribute(
+        IHtmlDocument document,
+        IElement element,
+        string attributeName,
+        Uri? baseUri,
+        string unavailableTitle,
+        string missingLocalTitle,
+        bool replaceNodeOnFailure)
+    {
+        var source = element.GetAttribute(attributeName);
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return true;
+        }
+
+        if (!TryResolveUri(source, baseUri, out var resolvedUri) || !IsAllowedPreviewResourceUri(resolvedUri))
+        {
+            HandleInvalidResource(document, element, attributeName, unavailableTitle, source, replaceNodeOnFailure);
+            return false;
+        }
+
+        if (resolvedUri.IsFile)
+        {
+            var localPath = MarkdownPathUtilities.NormalizePath(resolvedUri.LocalPath.Split('#', '?')[0]);
+            if (!File.Exists(localPath))
+            {
+                HandleInvalidResource(document, element, attributeName, missingLocalTitle, localPath, replaceNodeOnFailure);
+                return false;
+            }
+        }
+
+        element.SetAttribute(attributeName, resolvedUri.AbsoluteUri);
+        return true;
+    }
+
+    private static void HandleInvalidResource(
+        IHtmlDocument document,
+        IElement element,
+        string attributeName,
+        string title,
+        string detail,
+        bool replaceNodeOnFailure)
+    {
+        if (replaceNodeOnFailure)
+        {
+            ReplaceNodeWithPlaceholder(document, element, title, detail);
+            return;
+        }
+
+        element.RemoveAttribute(attributeName);
+    }
+
+    private static bool IsAllowedPreviewResourceUri(Uri uri) =>
+        uri.IsFile ||
+        string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(uri.Scheme, "data", StringComparison.OrdinalIgnoreCase);
+
     private static void ReplaceNodeWithPlaceholder(IHtmlDocument document, IElement node, string title, string detail)
     {
         var figure = document.CreateElement("figure");
@@ -218,6 +261,11 @@ public sealed class MarkdownRenderer
         figure.AppendChild(caption);
 
         node.Parent?.ReplaceChild(figure, node);
+    }
+
+    private static void RemoveNode(IElement node)
+    {
+        node.Parent?.RemoveChild(node);
     }
 
     private static bool TryResolveUri(string href, Uri? baseUri, out Uri resolvedUri)

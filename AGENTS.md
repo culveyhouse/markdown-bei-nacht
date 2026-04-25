@@ -2,18 +2,6 @@
 
 These instructions apply to the repository rooted at `C:\Users\dculv\Documents\Windows App Projects\markdown-bei-nacht`.
 
-## Editing Rule
-
-Temporary rule:
-
-- Do not use `apply_patch` for now.
-- Use PowerShell-based file edits instead.
-
-Reason:
-
-- `apply_patch` is currently unreliable in this Windows workspace.
-- This rule should be removed once the Windows `apply_patch` issue is fixed.
-
 ## Code Change Rules
 
 - Keep changes surgical and scoped to the active request.
@@ -30,10 +18,12 @@ Reason:
 
 ## Commit Message Format
 
-- For multiline `git commit` messages, always use a Bash heredoc.
+- For normal commits, always use a real multiline commit message with `git commit -F`.
+- Use one multiline message source, such as a Bash heredoc, a PowerShell here-string written to a temporary file, or another equivalent multiline blob.
+- Never split a commit message across repeated `-m` arguments.
 - Never use escaped `\n` sequences inside `-m`.
 
-Example:
+Example with Bash:
 
 ```bash
 git commit -F - <<'MSG'
@@ -56,7 +46,7 @@ MSG
 - When behavior, interfaces, defaults, or workflows change, update the nearest relevant `README.md` in the same scope.
 - If a scoped changelog exists, update release notes according to that area's policy.
 - Do not create new governance docs such as `CONTRIBUTING.md` unless explicitly requested.
-- When bumping a release version, also update src/MarkdownBeiNacht/UserGuide.md; it becomes the installed README.md opened from Help > User Guide. Delete this reminder once that is done.
+- When bumping a release version, also update `src/MarkdownBeiNacht/UserGuide.md`; it becomes the installed `README.md` opened from `Help > User Guide`.
 
 ## Safety Guardrails
 
@@ -74,7 +64,6 @@ MSG
 
 - Prefer `rg` and `rg --files` for fast search when available.
 - Keep edits ASCII unless a file already requires another encoding.
-- Avoid destructive git commands unless the user explicitly asks for them.
 - Treat unrelated local changes as user-owned unless clearly created for the current task.
 
 ## Repo Notes
